@@ -37,7 +37,7 @@ A C# WPF app that sits in the system tray and fires global keyboard shortcuts to
 
 **`DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` must be set** or `dotnet` crashes at startup in this WSL2 environment (libicu not installed, can't sudo). It's in `~/.bashrc` so it persists.
 
-**Redirect URI must match exactly.** Spotify Dashboard redirect URI must be `http://localhost:5001/callback` (no trailing slash from Spotify's side). The `HttpListener` prefix is registered with a trailing slash — this is intentional; HttpListener requires it.
+**Redirect URI must use explicit IP, not `localhost`.** Since April 2025, Spotify rejects `localhost` as a redirect URI. The Dashboard entry must be `http://127.0.0.1:5001/callback`. The `HttpListener` prefix is registered with a trailing slash (`http://127.0.0.1:5001/callback/`) — this is intentional; HttpListener requires a trailing slash on its prefix.
 
 **Refresh token does not expire** unless the user disconnects in the UI or revokes access at spotify.com/account. After first auth the app silently refreshes via the stored refresh token every ~hour.
 

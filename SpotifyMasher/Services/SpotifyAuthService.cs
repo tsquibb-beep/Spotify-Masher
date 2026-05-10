@@ -14,7 +14,7 @@ public class SpotifyAuthService
 {
     private const string TokenEndpoint = "https://accounts.spotify.com/api/token";
     private const string AuthEndpoint = "https://accounts.spotify.com/authorize";
-    private const string RedirectUri = "http://localhost:5001/callback/";
+    private const string RedirectUri = "http://127.0.0.1:5001/callback/";
     private const string Scopes = "user-read-playback-state user-modify-playback-state";
 
     private static readonly string TokenPath = Path.Combine(

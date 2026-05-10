@@ -178,7 +178,7 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 ## Spotify Developer App Setup (one-time)
 1. Go to https://developer.spotify.com/dashboard
 2. Create a new app (any name/description)
-3. Add Redirect URI: `http://localhost:5001/callback`
+3. Add Redirect URI: `http://127.0.0.1:5001/callback` (Spotify requires the explicit IP — `localhost` is rejected since April 2025)
 4. Copy the **Client ID** — paste it into Spotify Masher's auth panel
 5. No Client Secret is needed (PKCE flow)
 
