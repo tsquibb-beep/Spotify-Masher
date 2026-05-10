@@ -31,9 +31,6 @@ public partial class App : Application
         _trayIcon = (TaskbarIcon)FindResource("TrayIcon");
         _trayIcon.TrayMouseDoubleClick += (_, _) => ShowMainWindow();
 
-        HotkeyService.HotkeyFired += msg =>
-            _trayIcon?.ShowBalloonTip("Spotify Masher", msg, BalloonIcon.Info);
-
         AuthService.LoadStoredTokens();
 
         var config = ConfigService.Load();
