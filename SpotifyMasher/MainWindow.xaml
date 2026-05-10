@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:SpotifyMasher.Controls"
         Title="Spotify Masher"
-        Width="680" Height="520"
-        MinWidth="560" MinHeight="400"
+        Width="680" Height="640"
+        MinWidth="560" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource BrushBg}">
@@ -40,6 +40,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="140" />
         </Grid.RowDefinitions>
 
         <!-- Header -->
@@ -170,7 +171,7 @@
         </Grid>
 
         <!-- Footer -->
-        <Grid Grid.Row="3" Margin="0,12,0,0">
+        <Grid Grid.Row="3" Margin="0,12,0,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -190,6 +191,37 @@
             <Button Grid.Column="3" Content="Minimise to Tray"
                     Style="{StaticResource GhostButton}"
                     Click="MinimiseToTray_Click" />
+        </Grid>
+
+        <!-- Debug Log -->
+        <Grid Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Debug Log" FontWeight="SemiBold" FontSize="11"
+                           Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Content="Clear" Click="ClearLog_Click"
+                        Style="{StaticResource GhostButton}" Padding="8,2" FontSize="11" />
+            </Grid>
+
+            <TextBox x:Name="LogBox" Grid.Row="1"
+                     IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="10"
+                     Background="#0D0D1A"
+                     Foreground="#88CC88"
+                     BorderBrush="{StaticResource BrushBorder}"
+                     BorderThickness="1"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     TextWrapping="NoWrap"
+                     Padding="6" />
         </Grid>
     </Grid>
 </Window>

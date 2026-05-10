@@ -16,33 +16,54 @@ public class SpotifyApiService
     public async Task AdjustVolumeAsync(int delta)
     {
         var current = await GetVolumeAsync();
-        if (current < 0) return;
+        if (current < 0)
+        {
+            AppLogger.Log($"AdjustVolume: GetVolume returned {current}, aborting");
+            return;
+        }
+
         var newVolume = Math.Clamp(current + delta, 0, 100);
+        AppLogger.Log($"AdjustVolume: current={current} delta={delta} new={newVolume}");
         await SetVolumeAsync(newVolume);
     }
 
     private async Task<int> GetVolumeAsync()
     {
+        AppLogger.Log("GetVolume: GET /me/player");
         var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
         var response = await _http.SendAsync(req);
 
-        // 204 = no active device; anything else non-2xx is an error
-        if (!response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        AppLogger.Log($"GetVolume: HTTP {(int)response.StatusCode} {response.StatusCode}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            AppLogger.Log("GetVolume: 204 No Content — no active Spotify device");
             return -1;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            AppLogger.Log($"GetVolume: error response");
+            return -1;
+        }
 
         var body = await response.Content.ReadAsStringAsync();
         if (string.IsNullOrWhiteSpace(body)) return -1;
 
         var json = JsonNode.Parse(body);
-        return json?["device"]?["volume_percent"]?.GetValue<int>() ?? -1;
+        var vol = json?["device"]?["volume_percent"]?.GetValue<int>() ?? -1;
+        AppLogger.Log($"GetVolume: volume_percent={vol}");
+        return vol;
     }
 
     private async Task SetVolumeAsync(int volumePercent)
     {
+        AppLogger.Log($"SetVolume: PUT /me/player/volume?volume_percent={volumePercent}");
         var req = await BuildRequest(HttpMethod.Put,
             $"{BaseUrl}/me/player/volume?volume_percent={volumePercent}");
         req.Content = new StringContent(string.Empty);
-        await _http.SendAsync(req);
+        var response = await _http.SendAsync(req);
+        AppLogger.Log($"SetVolume: HTTP {(int)response.StatusCode} {response.StatusCode}");
     }
 
     private async Task<HttpRequestMessage> BuildRequest(HttpMethod method, string url)

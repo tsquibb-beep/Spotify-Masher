@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using SpotifyMasher.Models;
+using SpotifyMasher.Services;
 
 namespace SpotifyMasher;
 
@@ -28,6 +29,14 @@ public partial class MainWindow : Window
 
         HotkeyGrid.ItemsSource = _bindings;
 
+        AppLogger.LineAdded += line => Dispatcher.InvokeAsync(() =>
+        {
+            LogBox.AppendText(line + "\n");
+            LogBox.ScrollToEnd();
+        });
+
+        AppLogger.Log("App started");
+
         var config = App.ConfigService.Load();
         if (!string.IsNullOrEmpty(config.ClientId))
             ClientIdBox.Text = config.ClientId;
@@ -35,7 +44,10 @@ public partial class MainWindow : Window
         foreach (var b in config.Bindings)
             _bindings.Add(b);
 
+        AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
+
         IsAuthenticated = App.AuthService.IsAuthenticated;
+        AppLogger.Log($"Auth state on startup: {(IsAuthenticated ? "authenticated" : "not authenticated")}");
     }
 
     private void UpdateAuthUi()
@@ -73,13 +85,14 @@ public partial class MainWindow : Window
 
         AuthButton.IsEnabled = false;
         AuthStatusText.Text = "Opening browser — please authorise in Spotify, then return here…";
+        AppLogger.Log($"Starting auth for ClientId={clientId[..Math.Min(8, clientId.Length)]}…");
 
-        // Save client ID before auth so the refresh service can read it
         var config = App.ConfigService.Load();
         config.ClientId = clientId;
         App.ConfigService.Save(config);
 
         var success = await App.AuthService.StartAuthAsync(clientId);
+        AppLogger.Log($"Auth result: {(success ? "success" : "failed")}");
 
         AuthButton.IsEnabled = true;
         IsAuthenticated = success;
@@ -99,35 +112,48 @@ public partial class MainWindow : Window
 
         App.HotkeyService.UnregisterAll();
         IsAuthenticated = false;
+        AppLogger.Log("Disconnected and tokens deleted");
     }
 
     private void AddHotkey_Click(object sender, RoutedEventArgs e)
     {
         _bindings.Add(new HotkeyBinding());
+        AppLogger.Log("Added new empty hotkey row");
     }
 
     private void DeleteRow_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is HotkeyBinding binding)
+        {
             _bindings.Remove(binding);
+            AppLogger.Log($"Deleted hotkey row: {binding.KeysDisplay}");
+        }
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
+        AppLogger.Log($"Save clicked — {_bindings.Count} row(s)");
+
         var config = App.ConfigService.Load();
         config.Bindings = [.. _bindings];
         App.ConfigService.Save(config);
 
         var failures = new List<string>();
-        App.HotkeyService.RegistrationFailed += msg => failures.Add(msg);
+        App.HotkeyService.RegistrationFailed += OnFail;
         App.HotkeyService.RegisterAll(_bindings);
-        App.HotkeyService.RegistrationFailed -= msg => failures.Add(msg);
+        App.HotkeyService.RegistrationFailed -= OnFail;
+
+        void OnFail(string msg) => failures.Add(msg);
+
+        int active = _bindings.Count(b => b.Key != System.Windows.Input.Key.None);
 
         if (failures.Count > 0)
             AuthStatusText.Text = $"⚠ Could not register: {string.Join("; ", failures)}";
         else
-            AuthStatusText.Text = $"Hotkeys saved — {_bindings.Count(b => b.Key != System.Windows.Input.Key.None)} active.";
+            AuthStatusText.Text = $"Hotkeys saved — {active} active.";
     }
+
+    private void ClearLog_Click(object sender, RoutedEventArgs e) => LogBox.Clear();
 
     private void MinimiseToTray_Click(object sender, RoutedEventArgs e) => Hide();
 
