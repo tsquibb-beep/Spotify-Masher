@@ -37,15 +37,15 @@
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="140" />
+            <RowDefinition Height="Auto" />   <!-- Header -->
+            <RowDefinition Height="Auto" />   <!-- Auth panel -->
+            <RowDefinition Height="*" />      <!-- Hotkey table -->
+            <RowDefinition Height="Auto" />   <!-- Footer buttons -->
+            <RowDefinition Height="140" />    <!-- Debug log -->
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,20">
+        <!-- ══ Header ══ -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -66,13 +66,27 @@
             </StackPanel>
         </Grid>
 
-        <!-- Auth Panel -->
-        <Border x:Name="AuthPanel" Grid.Row="1"
+        <!-- ══ Auth Panel ══ -->
+        <Border Grid.Row="1"
                 Background="{StaticResource BrushSurface}"
                 BorderBrush="{StaticResource BrushBorder}"
                 BorderThickness="1" CornerRadius="8"
                 Padding="16,14" Margin="0,0,0,16">
+
             <Grid>
+            <!-- Connected: compact single row -->
+            <StackPanel x:Name="AuthConnected" Orientation="Horizontal" Visibility="Collapsed">
+                <Ellipse Width="10" Height="10" Fill="{StaticResource BrushAccent}"
+                         VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock Text="Spotify is connected" FontWeight="SemiBold" FontSize="13"
+                           VerticalAlignment="Center" Margin="0,0,20,0" />
+                <Button Content="Disconnect"
+                        Style="{StaticResource PrimaryButton}"
+                        Click="DisconnectButton_Click" />
+            </StackPanel>
+
+            <!-- Disconnected: full form -->
+            <Grid x:Name="AuthDisconnected">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -86,22 +100,14 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBox x:Name="ClientIdBox" Grid.Column="0" Margin="0,0,8,0"
-                             Tag="Paste your Spotify Client ID here…" />
+                    <TextBox x:Name="ClientIdBox" Grid.Column="0" Margin="0,0,8,0" />
 
                     <Button x:Name="AuthButton" Grid.Column="1"
                             Content="Authorise with Spotify"
                             Style="{StaticResource PrimaryButton}"
-                            Click="AuthButton_Click" Margin="0,0,8,0" />
-
-                    <Button x:Name="DisconnectButton" Grid.Column="2"
-                            Content="Disconnect"
-                            Style="{StaticResource GhostButton}"
-                            Click="DisconnectButton_Click"
-                            Visibility="Collapsed" />
+                            Click="AuthButton_Click" />
                 </Grid>
 
                 <TextBlock x:Name="AuthStatusText" Grid.Row="2"
@@ -109,9 +115,10 @@
                            Foreground="{StaticResource BrushTextMuted}"
                            FontSize="11" TextWrapping="Wrap" />
             </Grid>
+            </Grid>
         </Border>
 
-        <!-- Hotkey table -->
+        <!-- ══ Hotkey table ══ -->
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -121,63 +128,66 @@
             <TextBlock Grid.Row="0" Text="Hotkeys" FontWeight="SemiBold"
                        FontSize="14" Margin="0,0,0,8" />
 
+            <!-- Margin gives breathing room so rounded corners are visible on all sides -->
             <Border Grid.Row="1"
                     BorderBrush="{StaticResource BrushBorder}"
+                    Background="{StaticResource BrushSurface}"
                     BorderThickness="1"
                     CornerRadius="8"
-                    ClipToBounds="True">
-            <DataGrid x:Name="HotkeyGrid"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False">
-                <DataGrid.Columns>
+                    ClipToBounds="True"
+                    Margin="2">
+                <DataGrid x:Name="HotkeyGrid"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False">
+                    <DataGrid.Columns>
 
-                    <DataGridTemplateColumn Header="Keybinding" Width="200">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <controls:HotkeyBox BindingTarget="{Binding}"
-                                                    Margin="2"
-                                                    Background="{StaticResource BrushSurface2}"
-                                                    Foreground="{StaticResource BrushText}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Keybinding" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <controls:HotkeyBox BindingTarget="{Binding}"
+                                                        Margin="4,3"
+                                                        Background="{StaticResource BrushSurface2}"
+                                                        Foreground="{StaticResource BrushText}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Action" Width="160">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <ComboBox ItemsSource="{x:Static local:MainWindow.AvailableActions}"
-                                          SelectedItem="{Binding Action, UpdateSourceTrigger=PropertyChanged}"
-                                          Margin="2" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Action" Width="160">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{x:Static local:MainWindow.AvailableActions}"
+                                              SelectedItem="{Binding Action, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="4,3" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Parameter" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBox Text="{Binding Parameter, UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="2" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Parameter" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Parameter, UpdateSourceTrigger=PropertyChanged}"
+                                             Margin="4,3" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="" Width="36">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="✕" Style="{StaticResource DeleteButton}"
-                                        Tag="{Binding}"
-                                        Click="DeleteRow_Click" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="" Width="36">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✕" Style="{StaticResource DeleteButton}"
+                                            Tag="{Binding}"
+                                            Click="DeleteRow_Click" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                </DataGrid.Columns>
-            </DataGrid>
+                    </DataGrid.Columns>
+                </DataGrid>
             </Border>
         </Grid>
 
-        <!-- Footer -->
+        <!-- ══ Footer ══ -->
         <Grid Grid.Row="3" Margin="0,12,0,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -200,7 +210,7 @@
                     Click="MinimiseToTray_Click" />
         </Grid>
 
-        <!-- Debug Log -->
+        <!-- ══ Debug Log ══ -->
         <Grid Grid.Row="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

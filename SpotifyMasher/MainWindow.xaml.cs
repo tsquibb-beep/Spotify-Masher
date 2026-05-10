@@ -65,20 +65,16 @@ public partial class MainWindow : Window
         {
             StatusDot.Fill = new SolidColorBrush(Color.FromRgb(0x1D, 0xB9, 0x54));
             StatusLabel.Text = "Connected";
-            AuthStatusText.Text = "Authorised — your hotkeys are active.";
-            AuthButton.Visibility = Visibility.Collapsed;
-            ClientIdBox.IsReadOnly = true;
-            DisconnectButton.Visibility = Visibility.Visible;
+            AuthConnected.Visibility = Visibility.Visible;
+            AuthDisconnected.Visibility = Visibility.Collapsed;
             SaveButton.IsEnabled = true;
         }
         else
         {
             StatusDot.Fill = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x66));
             StatusLabel.Text = "Not connected";
-            AuthStatusText.Text = "Enter your Spotify Client ID from developer.spotify.com/dashboard";
-            AuthButton.Visibility = Visibility.Visible;
-            ClientIdBox.IsReadOnly = false;
-            DisconnectButton.Visibility = Visibility.Collapsed;
+            AuthConnected.Visibility = Visibility.Collapsed;
+            AuthDisconnected.Visibility = Visibility.Visible;
             SaveButton.IsEnabled = false;
         }
     }
@@ -157,9 +153,9 @@ public partial class MainWindow : Window
         int active = _bindings.Count(b => b.Key != System.Windows.Input.Key.None);
 
         if (failures.Count > 0)
-            AuthStatusText.Text = $"⚠ Could not register: {string.Join("; ", failures)}";
+            AppLogger.Log($"⚠ Could not register: {string.Join("; ", failures)}");
         else
-            AuthStatusText.Text = $"Hotkeys saved — {active} active.";
+            AppLogger.Log($"Hotkeys saved — {active} active.");
     }
 
     private void ClearLog_Click(object sender, RoutedEventArgs e) => LogBox.Clear();
