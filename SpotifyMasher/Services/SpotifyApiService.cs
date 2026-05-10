@@ -26,9 +26,14 @@ public class SpotifyApiService
         var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
         var response = await _http.SendAsync(req);
 
-        if (!response.IsSuccessStatusCode) return -1;
+        // 204 = no active device; anything else non-2xx is an error
+        if (!response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            return -1;
 
-        var json = JsonNode.Parse(await response.Content.ReadAsStringAsync());
+        var body = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(body)) return -1;
+
+        var json = JsonNode.Parse(body);
         return json?["device"]?["volume_percent"]?.GetValue<int>() ?? -1;
     }
 

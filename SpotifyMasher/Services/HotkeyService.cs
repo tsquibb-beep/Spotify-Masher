@@ -48,11 +48,15 @@ public class HotkeyService
 
     private void HandleHotkey(HotkeyBinding binding)
     {
-        if (binding.Action != "ChangeVolume") return;
+        if (binding.Action != "ChangeVolume" && binding.Action != "Change Volume") return;
 
         if (!int.TryParse(binding.Parameter.Replace("%", "").Trim(), out int delta))
             return;
 
-        _ = _spotify.AdjustVolumeAsync(delta);
+        _ = _spotify.AdjustVolumeAsync(delta).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                System.Diagnostics.Debug.WriteLine($"[HotkeyService] Volume adjust failed: {t.Exception?.GetBaseException().Message}");
+        });
     }
 }
