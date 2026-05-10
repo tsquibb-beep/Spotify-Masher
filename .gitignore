@@ -1,0 +1,22 @@
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio / Rider
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+# Runtime config (contains Client ID and tokens — never commit)
+SpotifyMasher/AppData/
+# %AppData%\SpotifyMasher\ is outside the repo, but just in case:
+config.json
+tokens.json
+
+# Python helper script (not part of the app)
+create-icon.py
+
+# OS
+.DS_Store
+Thumbs.db
