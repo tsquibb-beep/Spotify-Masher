@@ -118,9 +118,15 @@ public partial class MainWindow : Window
         config.Bindings = [.. _bindings];
         App.ConfigService.Save(config);
 
+        var failures = new List<string>();
+        App.HotkeyService.RegistrationFailed += msg => failures.Add(msg);
         App.HotkeyService.RegisterAll(_bindings);
+        App.HotkeyService.RegistrationFailed -= msg => failures.Add(msg);
 
-        AuthStatusText.Text = "Hotkeys saved and registered.";
+        if (failures.Count > 0)
+            AuthStatusText.Text = $"⚠ Could not register: {string.Join("; ", failures)}";
+        else
+            AuthStatusText.Text = $"Hotkeys saved — {_bindings.Count(b => b.Key != System.Windows.Input.Key.None)} active.";
     }
 
     private void MinimiseToTray_Click(object sender, RoutedEventArgs e) => Hide();

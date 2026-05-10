@@ -17,7 +17,6 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // Single-instance guard
         _mutex = new Mutex(true, "SpotifyMasherSingleInstance", out bool isNew);
         if (!isNew)
         {
@@ -32,24 +31,28 @@ public partial class App : Application
         _trayIcon = (TaskbarIcon)FindResource("TrayIcon");
         _trayIcon.TrayMouseDoubleClick += (_, _) => ShowMainWindow();
 
+        HotkeyService.HotkeyFired += msg =>
+            _trayIcon?.ShowBalloonTip("Spotify Masher", msg, BalloonIcon.Info);
+
         AuthService.LoadStoredTokens();
 
         var config = ConfigService.Load();
         if (config.Bindings.Count > 0)
             HotkeyService.RegisterAll(config.Bindings);
 
-        // Start minimised to tray — show window only on double-click
         var window = new MainWindow();
         MainWindow = window;
     }
 
-    private void ShowMainWindow()
+    internal void ShowMainWindow()
     {
         if (MainWindow == null) return;
         MainWindow.Show();
         MainWindow.WindowState = WindowState.Normal;
         MainWindow.Activate();
     }
+
+    internal TaskbarIcon? TrayIcon => _trayIcon;
 
     private void TrayShow_Click(object sender, RoutedEventArgs e) => ShowMainWindow();
 

@@ -1,4 +1,3 @@
-using NHotkey;
 using NHotkey.Wpf;
 using SpotifyMasher.Models;
 
@@ -8,6 +7,9 @@ public class HotkeyService
 {
     private readonly SpotifyApiService _spotify;
     private readonly List<string> _registeredNames = [];
+
+    public event Action<string>? HotkeyFired;  // fires with a human-readable description
+    public event Action<string>? RegistrationFailed;  // fires with the conflicting key combo
 
     public HotkeyService(SpotifyApiService spotify) => _spotify = spotify;
 
@@ -29,9 +31,10 @@ public class HotkeyService
                     (_, _) => HandleHotkey(captured));
                 _registeredNames.Add(name);
             }
-            catch
+            catch (Exception ex)
             {
-                // Hotkey already registered by another app — skip silently
+                RegistrationFailed?.Invoke(
+                    $"{binding.KeysDisplay} — {ex.Message} (likely claimed by another app or Windows)");
             }
         }
     }
@@ -53,10 +56,13 @@ public class HotkeyService
         if (!int.TryParse(binding.Parameter.Replace("%", "").Trim(), out int delta))
             return;
 
+        HotkeyFired?.Invoke($"Volume {(delta >= 0 ? "+" : "")}{delta}%");
+
         _ = _spotify.AdjustVolumeAsync(delta).ContinueWith(t =>
         {
             if (t.IsFaulted)
-                System.Diagnostics.Debug.WriteLine($"[HotkeyService] Volume adjust failed: {t.Exception?.GetBaseException().Message}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[HotkeyService] Volume adjust failed: {t.Exception?.GetBaseException().Message}");
         });
     }
 }
