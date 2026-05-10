@@ -64,28 +64,50 @@ public class HotkeyService
     private void HandleHotkey(HotkeyBinding binding)
     {
         AppLogger.Log($"Hotkey FIRED: Key={binding.Key} Modifiers={binding.Modifiers} Action='{binding.Action}' Param='{binding.Parameter}'");
+        HotkeyFired?.Invoke(binding.Action);
 
-        if (binding.Action != "Change Volume")
+        Task task = binding.Action switch
         {
-            AppLogger.Log($"  → ignored (unknown action '{binding.Action}')");
-            return;
-        }
+            "Change Volume" => HandleChangeVolume(binding.Parameter),
+            "Next Track"    => _spotify.NextTrackAsync(),
+            "Previous Track"=> _spotify.PreviousTrackAsync(),
+            "Seek"          => HandleSeek(binding.Parameter),
+            "Add to Liked"  => _spotify.LikeCurrentTrackAsync(),
+            _ => LogUnknown(binding.Action)
+        };
 
-        if (!int.TryParse(binding.Parameter.Replace("%", "").Trim(), out int delta))
-        {
-            AppLogger.Log($"  → ignored (could not parse parameter '{binding.Parameter}' as int)");
-            return;
-        }
-
-        AppLogger.Log($"  → calling AdjustVolumeAsync({delta})");
-        HotkeyFired?.Invoke($"Volume {(delta >= 0 ? "+" : "")}{delta}%");
-
-        _ = _spotify.AdjustVolumeAsync(delta).ContinueWith(t =>
+        _ = task.ContinueWith(t =>
         {
             if (t.IsFaulted)
-                AppLogger.Log($"  → AdjustVolumeAsync FAILED: {t.Exception?.GetBaseException().Message}");
-            else
-                AppLogger.Log($"  → AdjustVolumeAsync completed OK");
+                AppLogger.Log($"  → action FAILED: {t.Exception?.GetBaseException().Message}");
         });
+    }
+
+    private Task HandleChangeVolume(string parameter)
+    {
+        if (!int.TryParse(parameter.Replace("%", "").Trim(), out int delta))
+        {
+            AppLogger.Log($"  → ignored (could not parse '{parameter}' as int)");
+            return Task.CompletedTask;
+        }
+        AppLogger.Log($"  → AdjustVolumeAsync({delta})");
+        return _spotify.AdjustVolumeAsync(delta);
+    }
+
+    private Task HandleSeek(string parameter)
+    {
+        if (!int.TryParse(parameter.Replace("s", "").Trim(), out int seconds))
+        {
+            AppLogger.Log($"  → ignored (could not parse '{parameter}' as int seconds)");
+            return Task.CompletedTask;
+        }
+        AppLogger.Log($"  → SeekAsync({seconds}s)");
+        return _spotify.SeekAsync(seconds);
+    }
+
+    private static Task LogUnknown(string action)
+    {
+        AppLogger.Log($"  → ignored (unknown action '{action}')");
+        return Task.CompletedTask;
     }
 }

@@ -10,7 +10,14 @@ namespace SpotifyMasher;
 
 public partial class MainWindow : Window
 {
-    public static IReadOnlyList<string> AvailableActions { get; } = ["Change Volume"];
+    public static IReadOnlyList<string> AvailableActions { get; } =
+    [
+        "Change Volume",   // Parameter: +5 or -5 (percent)
+        "Next Track",      // Parameter: ignored
+        "Previous Track",  // Parameter: ignored
+        "Seek",            // Parameter: +10 or -10 (seconds)
+        "Add to Liked",    // Parameter: ignored
+    ];
 
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private bool _isAuthenticated;

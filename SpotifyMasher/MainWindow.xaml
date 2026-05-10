@@ -121,7 +121,12 @@
             <TextBlock Grid.Row="0" Text="Hotkeys" FontWeight="SemiBold"
                        FontSize="14" Margin="0,0,0,8" />
 
-            <DataGrid x:Name="HotkeyGrid" Grid.Row="1"
+            <Border Grid.Row="1"
+                    BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    ClipToBounds="True">
+            <DataGrid x:Name="HotkeyGrid"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       CanUserDeleteRows="False">
@@ -132,7 +137,8 @@
                             <DataTemplate>
                                 <controls:HotkeyBox BindingTarget="{Binding}"
                                                     Margin="2"
-                                                    Background="{StaticResource BrushSurface2}" />
+                                                    Background="{StaticResource BrushSurface2}"
+                                                    Foreground="{StaticResource BrushText}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -168,6 +174,7 @@
 
                 </DataGrid.Columns>
             </DataGrid>
+            </Border>
         </Grid>
 
         <!-- Footer -->

@@ -66,6 +66,83 @@ public class SpotifyApiService
         AppLogger.Log($"SetVolume: HTTP {(int)response.StatusCode} {response.StatusCode}");
     }
 
+    public async Task NextTrackAsync()
+    {
+        AppLogger.Log("NextTrack: POST /me/player/next");
+        var req = await BuildRequest(HttpMethod.Post, $"{BaseUrl}/me/player/next");
+        req.Content = new StringContent(string.Empty);
+        var response = await _http.SendAsync(req);
+        AppLogger.Log($"NextTrack: HTTP {(int)response.StatusCode}");
+    }
+
+    public async Task PreviousTrackAsync()
+    {
+        AppLogger.Log("PreviousTrack: POST /me/player/previous");
+        var req = await BuildRequest(HttpMethod.Post, $"{BaseUrl}/me/player/previous");
+        req.Content = new StringContent(string.Empty);
+        var response = await _http.SendAsync(req);
+        AppLogger.Log($"PreviousTrack: HTTP {(int)response.StatusCode}");
+    }
+
+    public async Task SeekAsync(int deltaSeconds)
+    {
+        AppLogger.Log($"Seek: GET current position, then seek by {deltaSeconds}s");
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
+        var response = await _http.SendAsync(req);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+        {
+            AppLogger.Log("Seek: no active device, aborting");
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(body)) return;
+
+        var json = System.Text.Json.Nodes.JsonNode.Parse(body);
+        var currentMs = json?["progress_ms"]?.GetValue<long>() ?? 0;
+        var durationMs = json?["item"]?["duration_ms"]?.GetValue<long>() ?? long.MaxValue;
+
+        var newMs = Math.Clamp(currentMs + (deltaSeconds * 1000L), 0, durationMs);
+        AppLogger.Log($"Seek: position {currentMs}ms → {newMs}ms");
+
+        var seekReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/seek?position_ms={newMs}");
+        seekReq.Content = new StringContent(string.Empty);
+        var seekResponse = await _http.SendAsync(seekReq);
+        AppLogger.Log($"Seek: HTTP {(int)seekResponse.StatusCode}");
+    }
+
+    public async Task LikeCurrentTrackAsync()
+    {
+        AppLogger.Log("LikeTrack: GET currently playing");
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player/currently-playing");
+        var response = await _http.SendAsync(req);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+        {
+            AppLogger.Log("LikeTrack: nothing playing, aborting");
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(body)) return;
+
+        var json = System.Text.Json.Nodes.JsonNode.Parse(body);
+        var trackId = json?["item"]?["id"]?.GetValue<string>();
+        if (string.IsNullOrEmpty(trackId))
+        {
+            AppLogger.Log("LikeTrack: could not get track ID");
+            return;
+        }
+
+        AppLogger.Log($"LikeTrack: saving track {trackId}");
+        var likeReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/tracks");
+        likeReq.Content = new System.Net.Http.StringContent(
+            $"{{\"ids\":[\"{trackId}\"]}}", System.Text.Encoding.UTF8, "application/json");
+        var likeResponse = await _http.SendAsync(likeReq);
+        AppLogger.Log($"LikeTrack: HTTP {(int)likeResponse.StatusCode}");
+    }
+
     private async Task<HttpRequestMessage> BuildRequest(HttpMethod method, string url)
     {
         var token = await _auth.GetValidTokenAsync();
