@@ -19,7 +19,12 @@ public class HotkeyBinding : INotifyPropertyChanged
     public string Action
     {
         get => _action;
-        set { _action = value; OnPropertyChanged(nameof(Action)); }
+        set
+        {
+            // Normalize: strip WPF "System.Windows.Controls.ComboBoxItem: " prefix if present
+            _action = value?.Contains(':') == true ? value.Split(':').Last().Trim() : value ?? string.Empty;
+            OnPropertyChanged(nameof(Action));
+        }
     }
 
     public string Parameter
