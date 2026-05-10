@@ -275,7 +275,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Shared thumb template used by both scrollbar orientations -->
+    <!-- Scroll thumb template -->
     <ControlTemplate x:Key="ScrollThumbTemplate" TargetType="Thumb">
         <Border x:Name="ThumbBd" Background="#444466" CornerRadius="4" Margin="2" />
         <ControlTemplate.Triggers>
@@ -288,57 +288,47 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- Vertical scrollbar -->
-    <Style x:Key="VerticalScrollBar" TargetType="ScrollBar">
-        <Setter Property="Width" Value="8" />
+    <!-- Implicit ScrollBar — applies to every scrollbar in the app including DataGrid internals -->
+    <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="8" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
                     <Border Background="Transparent">
                         <Track x:Name="PART_Track" IsDirectionReversed="True">
                             <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" />
+                                <RepeatButton Command="ScrollBar.PageUpCommand"
+                                              Background="Transparent" BorderThickness="0"
+                                              Opacity="0" IsHitTestVisible="False" />
                             </Track.DecreaseRepeatButton>
                             <Track.Thumb>
                                 <Thumb Template="{StaticResource ScrollThumbTemplate}" />
                             </Track.Thumb>
                             <Track.IncreaseRepeatButton>
-                                <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" />
+                                <RepeatButton Command="ScrollBar.PageDownCommand"
+                                              Background="Transparent" BorderThickness="0"
+                                              Opacity="0" IsHitTestVisible="False" />
                             </Track.IncreaseRepeatButton>
                         </Track>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto" />
+                <Setter Property="Height" Value="8" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <!-- Horizontal scrollbar -->
-    <Style x:Key="HorizontalScrollBar" TargetType="ScrollBar">
-        <Setter Property="Height" Value="8" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Border Background="Transparent">
-                        <Track x:Name="PART_Track" IsDirectionReversed="False">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Template="{StaticResource ScrollThumbTemplate}" />
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0" />
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- ScrollViewer wires up the two scrollbar styles -->
+    <!-- ScrollViewer — provides our themed scrollbars for all scroll containers -->
     <Style TargetType="ScrollViewer">
         <Setter Property="Template">
             <Setter.Value>
@@ -356,7 +346,6 @@
                                                 CanContentScroll="{TemplateBinding CanContentScroll}" />
                         <ScrollBar x:Name="PART_VerticalScrollBar"
                                    Grid.Column="1" Grid.Row="0"
-                                   Style="{StaticResource VerticalScrollBar}"
                                    Orientation="Vertical"
                                    Value="{TemplateBinding VerticalOffset}"
                                    Maximum="{TemplateBinding ScrollableHeight}"
@@ -364,7 +353,6 @@
                                    Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
                         <ScrollBar x:Name="PART_HorizontalScrollBar"
                                    Grid.Column="0" Grid.Row="1"
-                                   Style="{StaticResource HorizontalScrollBar}"
                                    Orientation="Horizontal"
                                    Value="{TemplateBinding HorizontalOffset}"
                                    Maximum="{TemplateBinding ScrollableWidth}"

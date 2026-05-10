@@ -66,6 +66,43 @@ public class SpotifyApiService
         AppLogger.Log($"SetVolume: HTTP {(int)response.StatusCode} {response.StatusCode}");
     }
 
+    public async Task PlayPauseAsync()
+    {
+        AppLogger.Log("PlayPause: GET current state");
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
+        var response = await _http.SendAsync(req);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+        {
+            AppLogger.Log("PlayPause: no active device, attempting play");
+            var startReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/play");
+            startReq.Content = new StringContent(string.Empty);
+            await _http.SendAsync(startReq);
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        var json = JsonNode.Parse(body);
+        var isPlaying = json?["is_playing"]?.GetValue<bool>() ?? false;
+
+        if (isPlaying)
+        {
+            AppLogger.Log("PlayPause: pausing");
+            var pauseReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/pause");
+            pauseReq.Content = new StringContent(string.Empty);
+            var r = await _http.SendAsync(pauseReq);
+            AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
+        }
+        else
+        {
+            AppLogger.Log("PlayPause: resuming");
+            var playReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/play");
+            playReq.Content = new StringContent(string.Empty);
+            var r = await _http.SendAsync(playReq);
+            AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
+        }
+    }
+
     public async Task NextTrackAsync()
     {
         AppLogger.Log("NextTrack: POST /me/player/next");

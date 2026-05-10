@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Input;
 using SpotifyMasher.Models;
 using SpotifyMasher.Services;
 
@@ -12,11 +12,12 @@ public partial class MainWindow : Window
 {
     public static IReadOnlyList<string> AvailableActions { get; } =
     [
+        "Play / Pause",
         "Change Volume",   // Parameter: +5 or -5 (percent)
-        "Next Track",      // Parameter: ignored
-        "Previous Track",  // Parameter: ignored
+        "Next Track",
+        "Previous Track",
         "Seek",            // Parameter: +10 or -10 (seconds)
-        "Add to Liked",    // Parameter: ignored
+        "Add to Liked",
     ];
 
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
@@ -63,20 +64,22 @@ public partial class MainWindow : Window
     {
         if (_isAuthenticated)
         {
-            StatusDot.Fill = new SolidColorBrush(Color.FromRgb(0x1D, 0xB9, 0x54));
-            StatusLabel.Text = "Connected";
             AuthConnected.Visibility = Visibility.Visible;
             AuthDisconnected.Visibility = Visibility.Collapsed;
-            SaveButton.IsEnabled = true;
+            AuthFormSection.Visibility = Visibility.Collapsed;
         }
         else
         {
-            StatusDot.Fill = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x66));
-            StatusLabel.Text = "Not connected";
             AuthConnected.Visibility = Visibility.Collapsed;
             AuthDisconnected.Visibility = Visibility.Visible;
-            SaveButton.IsEnabled = false;
+            AuthFormSection.Visibility = Visibility.Visible;
         }
+    }
+
+    private void ConnectButton_Click(object sender, RoutedEventArgs e)
+    {
+        AuthFormSection.Visibility = Visibility.Visible;
+        ClientIdBox.Focus();
     }
 
     private async void AuthButton_Click(object sender, RoutedEventArgs e)
@@ -120,6 +123,8 @@ public partial class MainWindow : Window
         AppLogger.Log("Disconnected and tokens deleted");
     }
 
+    private void EditHotkeys_Click(object sender, RoutedEventArgs e) => SetHotkeysVisible(true);
+
     private void AddHotkey_Click(object sender, RoutedEventArgs e)
     {
         _bindings.Add(new HotkeyBinding());
@@ -150,12 +155,33 @@ public partial class MainWindow : Window
 
         void OnFail(string msg) => failures.Add(msg);
 
-        int active = _bindings.Count(b => b.Key != System.Windows.Input.Key.None);
+        int active = _bindings.Count(b => b.Key != Key.None);
 
         if (failures.Count > 0)
             AppLogger.Log($"⚠ Could not register: {string.Join("; ", failures)}");
         else
             AppLogger.Log($"Hotkeys saved — {active} active.");
+
+        SetHotkeysVisible(false);
+    }
+
+    private void SetHotkeysVisible(bool visible)
+    {
+        HotkeySection.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        HotkeyCollapsedButtons.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+        HotkeyExpandedButtons.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.OemTilde && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            DebugSection.Visibility = DebugSection.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            e.Handled = true;
+        }
+        base.OnPreviewKeyDown(e);
     }
 
     private void ClearLog_Click(object sender, RoutedEventArgs e) => LogBox.Clear();

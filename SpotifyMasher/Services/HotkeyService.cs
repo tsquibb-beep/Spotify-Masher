@@ -68,6 +68,7 @@ public class HotkeyService
 
         Task task = binding.Action switch
         {
+            "Play / Pause"  => _spotify.PlayPauseAsync(),
             "Change Volume" => HandleChangeVolume(binding.Parameter),
             "Next Track"    => _spotify.NextTrackAsync(),
             "Previous Track"=> _spotify.PreviousTrackAsync(),
