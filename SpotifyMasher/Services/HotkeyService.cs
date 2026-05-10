@@ -65,7 +65,7 @@ public class HotkeyService
     {
         AppLogger.Log($"Hotkey FIRED: Key={binding.Key} Modifiers={binding.Modifiers} Action='{binding.Action}' Param='{binding.Parameter}'");
 
-        if (binding.Action != "ChangeVolume" && binding.Action != "Change Volume")
+        if (binding.Action != "Change Volume")
         {
             AppLogger.Log($"  → ignored (unknown action '{binding.Action}')");
             return;

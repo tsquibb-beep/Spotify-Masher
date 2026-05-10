@@ -10,6 +10,8 @@ namespace SpotifyMasher;
 
 public partial class MainWindow : Window
 {
+    public static IReadOnlyList<string> AvailableActions { get; } = ["Change Volume"];
+
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private bool _isAuthenticated;
 

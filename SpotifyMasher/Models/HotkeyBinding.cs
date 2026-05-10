@@ -7,7 +7,7 @@ namespace SpotifyMasher.Models;
 public class HotkeyBinding : INotifyPropertyChanged
 {
     private string _keysDisplay = string.Empty;
-    private string _action = "ChangeVolume";
+    private string _action = "Change Volume";
     private string _parameter = "+5";
 
     public string KeysDisplay
