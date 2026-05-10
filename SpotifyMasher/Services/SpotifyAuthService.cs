@@ -14,7 +14,10 @@ public class SpotifyAuthService
 {
     private const string TokenEndpoint = "https://accounts.spotify.com/api/token";
     private const string AuthEndpoint = "https://accounts.spotify.com/authorize";
-    private const string RedirectUri = "http://127.0.0.1:5001/callback/";
+    // Spotify receives this (no trailing slash — must match dashboard exactly)
+    private const string RedirectUri = "http://127.0.0.1:5001/callback";
+    // HttpListener requires a trailing slash on its prefix
+    private const string ListenerPrefix = "http://127.0.0.1:5001/callback/";
     private const string Scopes = "user-read-playback-state user-modify-playback-state";
 
     private static readonly string TokenPath = Path.Combine(
@@ -74,7 +77,7 @@ public class SpotifyAuthService
     private async Task<string?> ListenForCallbackAsync(string expectedState)
     {
         using var listener = new HttpListener();
-        listener.Prefixes.Add(RedirectUri);
+        listener.Prefixes.Add(ListenerPrefix);
         listener.Start();
 
         var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
