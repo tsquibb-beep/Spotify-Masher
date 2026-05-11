@@ -62,7 +62,7 @@ A C# WPF application that:
 1. Authenticates with Spotify via OAuth 2.0 PKCE — **no re-authorisation after first login**
 2. Sits silently in the system tray
 3. Listens for configurable global keyboard shortcuts
-4. Executes Spotify API actions (initially: volume adjustment)
+4. Executes Spotify API actions: Play/Pause, Volume, Next/Prev Track, Seek, Like, Add to Playlist
 
 **User:** Tom Squibb (tsquibb@gmail.com, GitHub: tsquibb-beep)
 
@@ -77,20 +77,23 @@ Spotify-Masher/
 │   ├── SpotifyMasher.csproj        ← net10.0-windows, UseWPF, EnableWindowsTargeting
 │   ├── App.xaml / App.xaml.cs      ← Startup, single-instance Mutex, tray icon init
 │   ├── MainWindow.xaml / .cs       ← Config UI: auth panel + hotkey DataGrid
+│   ├── HelpWindow.xaml / .cs       ← Help & About modal (opened via '?' footer button)
+│   ├── DwmHelper.cs                ← P/Invoke DWMWA_CAPTION_COLOR — midnight purple title bar
 │   ├── Models/
 │   │   ├── HotkeyBinding.cs        ← One hotkey row: KeysDisplay, Modifiers, Key, Action, Parameter
 │   │   ├── AppConfig.cs            ← Serialisable config: ClientId + List<HotkeyBinding>
 │   │   └── TokenData.cs            ← Stored OAuth tokens: AccessToken, RefreshToken, ExpiresAt
 │   ├── Services/
 │   │   ├── SpotifyAuthService.cs   ← PKCE OAuth flow, token refresh, token persistence
-│   │   ├── SpotifyApiService.cs    ← GET /me/player (volume) + PUT /me/player/volume
+│   │   ├── SpotifyApiService.cs    ← All Spotify Web API actions (see below)
 │   │   ├── HotkeyService.cs        ← NHotkey registration/unregistration + action dispatch
 │   │   └── ConfigService.cs        ← Load/save AppConfig JSON from %AppData%\SpotifyMasher\
 │   ├── Controls/
 │   │   └── HotkeyBox.cs            ← Custom read-only TextBox that captures key combos
 │   └── Resources/
-│       ├── Styles.xaml             ← Dark modern theme (Spotify green accent)
-│       └── tray.ico                ← Placeholder icon (green circle on dark bg)
+│       ├── Styles.xaml             ← Dark modern theme (all implicit + keyed styles)
+│       ├── icon.ico                ← App/tray icon
+│       └── fuspotify256.png        ← Logo image shown in MainWindow header
 ├── version.txt                     ← SemVer single source of truth
 ├── CLAUDE.md                       ← This file
 ├── HANDOVER.md                     ← Session-end summary
@@ -155,10 +158,28 @@ Both files live in `%AppData%\SpotifyMasher\` (outside the repo — never commit
 ### Single-instance guard
 Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second instance starts, it shows a MessageBox and calls `Shutdown()`.
 
-### Spotify volume API
-- GET `https://api.spotify.com/v1/me/player` → `device.volume_percent` (int 0–100)
-- PUT `https://api.spotify.com/v1/me/player/volume?volume_percent={n}`
-- `AdjustVolumeAsync(delta)` = get current → clamp(current + delta, 0, 100) → set
+### DWM title bar theming
+- `DwmHelper.SetGreenTitleBar(window)` sets a midnight purple (#2D1B69) caption bar via `DwmSetWindowAttribute`
+- COLORREF format is `0x00BBGGRR` (not RGB): `#2D1B69` → `0x00691B2D`
+- Called in `OnSourceInitialized` (not constructor — HWND must exist first)
+- Applied to both `MainWindow` and `HelpWindow`
+
+### Spotify API actions (SpotifyApiService.cs)
+| Method | API call | Notes |
+|---|---|---|
+| `AdjustVolumeAsync(delta)` | GET + PUT `/me/player/volume` | Clamps 0–100 |
+| `PlayPauseAsync()` | GET + PUT `/me/player/play` or `pause` | Reads `is_playing` first |
+| `NextTrackAsync()` | POST `/me/player/next` | |
+| `PreviousTrackAsync()` | POST `/me/player/previous` | |
+| `SeekAsync(deltaSeconds)` | GET + PUT `/me/player/seek` | Reads `progress_ms`, clamps to duration |
+| `LikeCurrentTrackAsync()` | GET `/me/player/currently-playing` + PUT `/me/tracks` | |
+| `AddToPlaylistAsync(param)` | GET currently-playing + POST `/playlists/{id}/tracks` | Accepts bare ID, `spotify:playlist:ID` URI, or full `https://open.spotify.com/playlist/...?si=...` URL — strips `?si=` automatically |
+
+### Help & About window
+- `HelpWindow.xaml/.cs` — modal dialog, `WindowStartupLocation="CenterOwner"`, `ResizeMode="NoResize"`
+- Shows: Getting Started steps, action reference table, Playlist ID instructions, Tips, About/GitHub link
+- Version number read from `version.txt` (relative path from `BaseDirectory` — works in debug; adjust for published builds if needed)
+- DWM purple title bar applied via same `DwmHelper.SetGreenTitleBar`
 
 ---
 
@@ -169,9 +190,16 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 | `dotnet --version` crashes with ICU error in WSL2 | Ubuntu 26.04 WSL2 missing libicu; can't sudo to install | Set `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` (in ~/.bashrc); build still works fine |
 | NETSDK1100 "To build targeting Windows…" | WPF is Windows-only; cross-compile from Linux needs a flag | Add `<EnableWindowsTargeting>true</EnableWindowsTargeting>` to csproj |
 | `.slnx` not `.sln` | .NET 10 defaults to new solution format | Use `SpotifyMasher.slnx` in all `dotnet sln` commands |
-| `HttpListener` needs exact prefix match | Spotify redirects to `http://localhost:5001/callback` (no trailing slash), but `HttpListener` requires a trailing slash on the prefix | Register prefix as `http://localhost:5001/callback/` — HttpListener still matches the exact URL |
+| `HttpListener` needs exact prefix match | Spotify redirects to `http://127.0.0.1:5001/callback` (no trailing slash), but `HttpListener` requires a trailing slash on the prefix | Register prefix as `http://127.0.0.1:5001/callback/` — HttpListener still matches the exact URL |
 | Refresh token rotation | Spotify sometimes returns a new refresh_token in the refresh response | Always check for and persist `refresh_token` in the refresh response, not just `access_token` |
 | WPF DataGrid cells not editable | Default DataGrid cell edit mode requires a double-click | Template columns with embedded controls (TextBox, ComboBox) are always interactive — no double-click needed |
+| Implicit vs keyed ScrollBar styles | Keyed styles don't reach inside DataGrid's own control template | Use an implicit `<Style TargetType="ScrollBar">` (no `x:Key`) in App.xaml merged resources — applies app-wide including DataGrid internals |
+| DataGrid column header corner bleed | Coloured header background shows square corners through rounded outer Border | Set DataGridColumnHeader `Background=Transparent` — the outer Border's background shows through with correct rounded corners |
+| Spotify playlist share URL has `?si=` suffix | Pasting a Spotify share link like `...?si=abc123` passes an invalid playlist ID to the API → HTTP 405 | `AddToPlaylistAsync` strips `?si=` and handles full URLs, `spotify:playlist:ID` URIs, and bare IDs |
+| Debug toggle key not firing when child has focus | `OnPreviewKeyDown` override doesn't fire if a child (TextBox, DataGrid) marks the event handled | Use `AddHandler(PreviewKeyDownEvent, handler, handledEventsToo: true)` in the Window constructor |
+| Window focus after tray restore | `Activate()` alone doesn't guarantee keyboard focus on Windows 11 | Call `window.Focus()` after `Activate()` in `ShowMainWindow()` |
+| WPF Hyperlink in TextBlock | A Hyperlink is an inline element inside a `<TextBlock>`, not a standalone control | Use `<Run Text="..." /><Hyperlink NavigateUri="..." RequestNavigate="Handler">text</Hyperlink>` inside TextBlock; handler calls `Process.Start` with `UseShellExecute = true` |
+| ComboBox bound to strings via ItemsSource | Using `<ComboBoxItem>` elements with `SelectedItem="{Binding}"` produces "System.Windows.Controls.ComboBoxItem: ..." strings | Use `ItemsSource="{x:Static local:MainWindow.AvailableActions}"` with a `IReadOnlyList<string>` static property |
 
 ---
 
@@ -186,11 +214,15 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 
 ## Current Status
 
-**v0.1.0 — initial build**
-- WPF app compiles and builds cleanly (`dotnet build`, 0 errors, 0 warnings)
-- Auth panel: Client ID input + "Authorise with Spotify" button → PKCE flow → seamless refresh
-- Hotkey table: Keybinding | Action | Parameter — add/delete rows, HotkeyBox captures key combos
-- System tray: app starts hidden, tray icon with Show/Exit menu
+**v0.1.0**
+- Compiles cleanly from WSL2 (`dotnet build`, 0 errors, 0 warnings)
+- Auth: Client ID input → PKCE browser flow → seamless silent token refresh on subsequent launches
+- Hotkey table: collapsible, add/delete rows, HotkeyBox captures key combos, save re-registers all hotkeys
+- All 7 actions implemented: Play/Pause, Change Volume, Next Track, Previous Track, Seek, Add to Liked, Add to Playlist
+- System tray: starts hidden, dark-themed context menu (Show / Debug Log / Exit)
+- Debug log: toggled via Ctrl+Shift+` or tray menu, hidden by default
+- Help & About dialog: opened via `?` footer button, covers all actions + playlist ID instructions
+- Auth hint text contains a clickable hyperlink to developer.spotify.com/dashboard
+- Custom icon (`icon.ico`) and logo (`fuspotify256.png`) integrated
+- Midnight purple DWM title bar on MainWindow and HelpWindow
 - Config persisted to `%AppData%\SpotifyMasher\config.json`
-- Volume adjust: `AdjustVolumeAsync(delta)` clamps 0–100
-- **Not yet run on Windows** — build verified from WSL2, runtime test pending
