@@ -134,6 +134,7 @@
                     CornerRadius="8"
                     ClipToBounds="True"
                     MaxHeight="260"
+                    Padding="1"
                     Margin="2">
                 <DataGrid x:Name="HotkeyGrid"
                           AutoGenerateColumns="False"

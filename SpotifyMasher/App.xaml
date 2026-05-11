@@ -14,6 +14,7 @@
                 <tb:TaskbarIcon.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Show" Click="TrayShow_Click" />
+                        <MenuItem Header="Debug Log" Click="TrayDebugLog_Click" />
                         <Separator />
                         <MenuItem Header="Exit" Click="TrayExit_Click" />
                     </ContextMenu>

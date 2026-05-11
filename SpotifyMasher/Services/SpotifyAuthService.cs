@@ -18,7 +18,7 @@ public class SpotifyAuthService
     private const string RedirectUri = "http://127.0.0.1:5001/callback";
     // HttpListener requires a trailing slash on its prefix
     private const string ListenerPrefix = "http://127.0.0.1:5001/callback/";
-    private const string Scopes = "user-read-playback-state user-modify-playback-state user-library-modify";
+    private const string Scopes = "user-read-playback-state user-modify-playback-state user-library-modify playlist-modify-public playlist-modify-private";
 
     private static readonly string TokenPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

@@ -149,6 +149,47 @@ public class SpotifyApiService
         AppLogger.Log($"Seek: HTTP {(int)seekResponse.StatusCode}");
     }
 
+    public async Task AddToPlaylistAsync(string parameter)
+    {
+        // Accept full URI "spotify:playlist:ID" or bare playlist ID
+        var playlistId = parameter.StartsWith("spotify:playlist:", StringComparison.OrdinalIgnoreCase)
+            ? parameter["spotify:playlist:".Length..]
+            : parameter.Trim();
+
+        if (string.IsNullOrEmpty(playlistId))
+        {
+            AppLogger.Log("AddToPlaylist: no playlist ID in parameter, aborting");
+            return;
+        }
+
+        AppLogger.Log($"AddToPlaylist: GET currently playing");
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player/currently-playing");
+        var response = await _http.SendAsync(req);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+        {
+            AppLogger.Log("AddToPlaylist: nothing playing, aborting");
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        var json = JsonNode.Parse(body);
+        var trackUri = json?["item"]?["uri"]?.GetValue<string>();
+
+        if (string.IsNullOrEmpty(trackUri))
+        {
+            AppLogger.Log("AddToPlaylist: could not get track URI");
+            return;
+        }
+
+        AppLogger.Log($"AddToPlaylist: adding {trackUri} to playlist {playlistId}");
+        var addReq = await BuildRequest(HttpMethod.Post, $"{BaseUrl}/playlists/{playlistId}/tracks");
+        addReq.Content = new System.Net.Http.StringContent(
+            $"{{\"uris\":[\"{trackUri}\"]}}", System.Text.Encoding.UTF8, "application/json");
+        var addResponse = await _http.SendAsync(addReq);
+        AppLogger.Log($"AddToPlaylist: HTTP {(int)addResponse.StatusCode}");
+    }
+
     public async Task LikeCurrentTrackAsync()
     {
         AppLogger.Log("LikeTrack: GET currently playing");

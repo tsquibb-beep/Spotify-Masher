@@ -13,11 +13,12 @@ public partial class MainWindow : Window
     public static IReadOnlyList<string> AvailableActions { get; } =
     [
         "Play / Pause",
-        "Change Volume",   // Parameter: +5 or -5 (percent)
+        "Change Volume",     // Parameter: +5 or -5 (percent)
         "Next Track",
         "Previous Track",
-        "Seek",            // Parameter: +10 or -10 (seconds)
+        "Seek",              // Parameter: +10 or -10 (seconds)
         "Add to Liked",
+        "Add to Playlist",   // Parameter: playlist ID from Spotify URL
     ];
 
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
@@ -45,6 +46,11 @@ public partial class MainWindow : Window
             LogBox.ScrollToEnd();
         });
 
+        // Use AddHandler with handledEventsToo=true so the debug toggle key fires
+        // even when a child element (DataGrid, TextBox) has consumed the event.
+        AddHandler(UIElement.PreviewKeyDownEvent,
+            new KeyEventHandler(HandleGlobalKey), handledEventsToo: true);
+
         AppLogger.Log("App started");
 
         var config = App.ConfigService.Load();
@@ -58,6 +64,29 @@ public partial class MainWindow : Window
 
         IsAuthenticated = App.AuthService.IsAuthenticated;
         AppLogger.Log($"Auth state on startup: {(IsAuthenticated ? "authenticated" : "not authenticated")}");
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        DwmHelper.SetGreenTitleBar(this);
+    }
+
+    private void HandleGlobalKey(object sender, KeyEventArgs e)
+    {
+        // Ctrl+Shift+` (backtick/grave, Key.OemTilde, VK_OEM_3) toggles the debug log.
+        // Use HasFlag so CapsLock or NumLock don't break the check.
+        bool ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        bool shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+        bool tilde = e.Key == Key.OemTilde;
+
+        if (ctrl && shift && tilde)
+        {
+            DebugSection.Visibility = DebugSection.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            e.Handled = true;
+        }
     }
 
     private void UpdateAuthUi()
@@ -172,16 +201,11 @@ public partial class MainWindow : Window
         HotkeyExpandedButtons.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    internal void ToggleDebugLog()
     {
-        if (e.Key == Key.OemTilde && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-        {
-            DebugSection.Visibility = DebugSection.Visibility == Visibility.Visible
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            e.Handled = true;
-        }
-        base.OnPreviewKeyDown(e);
+        DebugSection.Visibility = DebugSection.Visibility == Visibility.Visible
+            ? Visibility.Collapsed
+            : Visibility.Visible;
     }
 
     private void ClearLog_Click(object sender, RoutedEventArgs e) => LogBox.Clear();
