@@ -17,6 +17,9 @@ tokens.json
 # Python helper script (not part of the app)
 create-icon.py
 
+# Local-only session notes
+HANDOVER.md
+
 # OS
 .DS_Store
 Thumbs.db
