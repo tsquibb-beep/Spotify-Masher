@@ -208,6 +208,18 @@ public partial class MainWindow : Window
             : Visibility.Visible;
     }
 
+    private void DashboardLink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        e.Handled = true;
+    }
+
+    private void Help_Click(object sender, RoutedEventArgs e)
+    {
+        var help = new HelpWindow { Owner = this };
+        help.ShowDialog();
+    }
+
     private void ClearLog_Click(object sender, RoutedEventArgs e) => LogBox.Clear();
 
     private void MinimiseToTray_Click(object sender, RoutedEventArgs e) => Hide();

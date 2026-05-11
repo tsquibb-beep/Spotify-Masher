@@ -115,9 +115,12 @@
                 </Grid>
 
                 <TextBlock x:Name="AuthStatusText" Grid.Row="1"
-                           Text="Enter your Spotify Client ID from developer.spotify.com/dashboard"
                            Foreground="{StaticResource BrushTextMuted}"
-                           FontSize="11" TextWrapping="Wrap" />
+                           FontSize="11" TextWrapping="Wrap">
+                    <Run Text="Enter your Spotify Client ID from " /><Hyperlink
+                        NavigateUri="https://developer.spotify.com/dashboard"
+                        RequestNavigate="DashboardLink_RequestNavigate">developer.spotify.com/dashboard</Hyperlink>
+                </TextBlock>
             </Grid>
         </Border>
 
@@ -189,6 +192,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <!-- When hotkeys collapsed: show Edit button -->
@@ -208,7 +212,11 @@
 
             <Button Grid.Column="1" Content="Minimise to Tray"
                     Style="{StaticResource GhostButton}"
-                    Click="MinimiseToTray_Click" />
+                    Click="MinimiseToTray_Click" Margin="0,0,8,0" />
+
+            <Button Grid.Column="2" Content="?" Width="30" Height="30" Padding="0"
+                    Style="{StaticResource GhostButton}"
+                    Click="Help_Click" ToolTip="Help &amp; About" />
         </Grid>
 
         <!-- ══ Debug Log (Ctrl+Shift+` to toggle, or via tray menu) ══ -->

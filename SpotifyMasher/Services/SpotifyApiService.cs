@@ -151,10 +151,25 @@ public class SpotifyApiService
 
     public async Task AddToPlaylistAsync(string parameter)
     {
-        // Accept full URI "spotify:playlist:ID" or bare playlist ID
-        var playlistId = parameter.StartsWith("spotify:playlist:", StringComparison.OrdinalIgnoreCase)
-            ? parameter["spotify:playlist:".Length..]
-            : parameter.Trim();
+        var playlistId = parameter.Trim();
+
+        // Accept full https:// share URLs — extract the 22-char base62 ID
+        if (playlistId.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            playlistId.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(playlistId, @"playlist/([A-Za-z0-9]+)");
+            playlistId = m.Success ? m.Groups[1].Value : string.Empty;
+        }
+        else if (playlistId.StartsWith("spotify:playlist:", StringComparison.OrdinalIgnoreCase))
+        {
+            playlistId = playlistId["spotify:playlist:".Length..];
+        }
+
+        // Strip ?si= or any other query/fragment suffix
+        var qIdx = playlistId.IndexOfAny(['?', '#']);
+        if (qIdx >= 0) playlistId = playlistId[..qIdx];
+
+        AppLogger.Log($"AddToPlaylist: resolved playlist ID = \"{playlistId}\"");
 
         if (string.IsNullOrEmpty(playlistId))
         {

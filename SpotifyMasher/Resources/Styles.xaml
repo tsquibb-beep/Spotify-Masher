@@ -235,6 +235,17 @@
         </Setter>
     </Style>
 
+    <!-- Hyperlink -->
+    <Style TargetType="Hyperlink">
+        <Setter Property="Foreground" Value="{StaticResource BrushAccent}" />
+        <Setter Property="TextDecorations" Value="{x:Null}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="TextDecorations" Value="Underline" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- DataGrid — border/radius is handled by the wrapping Border in MainWindow -->
     <Style TargetType="DataGrid">
         <Setter Property="Background" Value="{StaticResource BrushSurface}" />
