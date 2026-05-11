@@ -53,8 +53,8 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Image Source="/Resources/fuspotify256.png" Width="44" Height="44"
-                       Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                <Image Source="/Resources/fuspotify256.png" Width="64" Height="64"
+                       Margin="0,0,14,0" RenderOptions.BitmapScalingMode="HighQuality" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Spotify Masher" FontSize="22" FontWeight="Bold"
                                Foreground="{StaticResource BrushAccent}" />
