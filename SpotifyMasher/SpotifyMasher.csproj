@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <ApplicationIcon>Resources\tray.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AssemblyName>SpotifyMasher</AssemblyName>
     <RootNamespace>SpotifyMasher</RootNamespace>
   </PropertyGroup>
@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\tray.ico" />
+    <Resource Include="Resources\icon.ico" />
+    <Resource Include="Resources\fuspotify256.png" />
   </ItemGroup>
 
 </Project>

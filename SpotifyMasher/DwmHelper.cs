@@ -20,11 +20,13 @@ internal static class DwmHelper
             var hwnd = new WindowInteropHelper(window).Handle;
             if (hwnd == IntPtr.Zero) return;
 
-            // Spotify green #1DB954 → COLORREF is BGR, not RGB: 0x0054B91D
-            int captionColor = 0x0054B91D;
+            // Midnight purple #2D1B69 — complements the dark navy scheme without
+            // clashing with the green icon. COLORREF format is 0x00BBGGRR.
+            // R=0x2D, G=0x1B, B=0x69 → 0x00691B2D
+            int captionColor = 0x00691B2D;
             DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref captionColor, sizeof(int));
 
-            // White title text so "Spotify Masher" is readable on green
+            // White title text for readability on dark purple
             int textColor = 0x00FFFFFF;
             DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, ref textColor, sizeof(int));
         }

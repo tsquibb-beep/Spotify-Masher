@@ -9,7 +9,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <tb:TaskbarIcon x:Key="TrayIcon"
-                            IconSource="/Resources/tray.ico"
+                            IconSource="/Resources/icon.ico"
                             ToolTipText="Spotify Masher">
                 <tb:TaskbarIcon.ContextMenu>
                     <ContextMenu>

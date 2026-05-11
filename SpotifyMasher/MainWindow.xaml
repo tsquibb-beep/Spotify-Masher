@@ -52,11 +52,15 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Spotify Masher" FontSize="22" FontWeight="Bold"
-                           Foreground="{StaticResource BrushAccent}" />
-                <TextBlock Text="Global hotkeys for Spotify" FontSize="12"
-                           Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0" />
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Image Source="/Resources/fuspotify256.png" Width="44" Height="44"
+                       Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Spotify Masher" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource BrushAccent}" />
+                    <TextBlock Text="Global hotkeys for Spotify" FontSize="12"
+                               Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0" />
+                </StackPanel>
             </StackPanel>
 
             <!-- Connected state -->
