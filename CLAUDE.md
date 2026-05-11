@@ -14,6 +14,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Versioning
 - Version is stored in `version.txt` (project root) — single source of truth
+- **Update `version.txt` at the end of every session** before committing HANDOVER.md
 - Follows SemVer: `MAJOR.MINOR.PATCH`
   - MAJOR: breaking changes / major rewrites
   - MINOR: new user-visible features
@@ -214,7 +215,7 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 
 ## Current Status
 
-**v0.1.0**
+**v0.3.0**
 - Compiles cleanly from WSL2 (`dotnet build`, 0 errors, 0 warnings)
 - Auth: Client ID input → PKCE browser flow → seamless silent token refresh on subsequent launches
 - Hotkey table: collapsible, add/delete rows, HotkeyBox captures key combos, save re-registers all hotkeys

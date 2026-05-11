@@ -4,7 +4,7 @@
 A C# .NET 10 WPF app that sits in the system tray and fires global keyboard shortcuts to control Spotify. Auth is OAuth 2.0 PKCE — after the first browser login, tokens refresh silently forever.
 
 ## Current state
-**v0.1.0 — fully functional, cleanly building.** All 7 hotkey actions work. The app has been verified to compile with 0 errors/warnings from WSL2.
+**v0.3.0 — fully functional, cleanly building.** All 7 hotkey actions work. The app has been verified to compile with 0 errors/warnings from WSL2.
 
 ## What was done across sessions
 
