@@ -10,6 +10,7 @@
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AssemblyName>SpotifyMasher</AssemblyName>
     <RootNamespace>SpotifyMasher</RootNamespace>
+    <Version>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\..\version.txt').Trim())</Version>
   </PropertyGroup>
 
   <ItemGroup>

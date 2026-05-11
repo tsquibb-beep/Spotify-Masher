@@ -1,4 +1,4 @@
-using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -10,9 +10,11 @@ public partial class HelpWindow : Window
     {
         InitializeComponent();
 
-        var versionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "version.txt");
-        if (File.Exists(versionPath))
-            VersionText.Text = "v" + File.ReadAllText(versionPath).Trim();
+        var version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
+        if (version is not null)
+            VersionText.Text = "v" + version;
     }
 
     protected override void OnSourceInitialized(EventArgs e)
