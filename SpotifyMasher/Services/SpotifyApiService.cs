@@ -82,9 +82,8 @@ public class SpotifyApiService
                 return;
             }
             AppLogger.Log($"PlayPause: transferring playback to device {deviceId}");
-            var startReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/play");
-            startReq.Content = new StringContent(
-                $"{{\"device_ids\":[\"{deviceId}\"]}}", System.Text.Encoding.UTF8, "application/json");
+            var startReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/play?device_id={deviceId}");
+            startReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(startReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
             return;
