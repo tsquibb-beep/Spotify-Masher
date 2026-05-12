@@ -36,7 +36,24 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20,14,20,14">
+    <Grid>
+        <!-- Background watermark logo — adjust these values to taste:
+             Width/Height  = size of the image
+             Canvas.Left   = horizontal position (negative = bleeds off left edge)
+             Canvas.Top    = vertical position (-Height/2 centres it)
+             Opacity       = 0.0 (invisible) to 1.0 (full)
+             Canvas is zero-size so it never affects window height. -->
+        <Canvas Width="0" Height="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                IsHitTestVisible="False">
+            <Image Source="/Resources/fuspotify.png"
+                   Width="340" Height="340"
+                   Opacity="0.15"
+                   Canvas.Left="-80" Canvas.Top="-150"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+        </Canvas>
+
+        <!-- Main content -->
+        <Grid Margin="20,14,20,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />   <!-- Header -->
             <RowDefinition Height="Auto" />   <!-- Auth form (disconnected only) -->
@@ -52,15 +69,11 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Image Source="/Resources/fuspotify256.png" Width="64" Height="64"
-                       Margin="0,0,14,0" RenderOptions.BitmapScalingMode="HighQuality" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Spotify Masher" FontSize="22" FontWeight="Bold"
-                               Foreground="{StaticResource BrushAccent}" />
-                    <TextBlock Text="Global hotkeys for Spotify" FontSize="12"
-                               Foreground="{StaticResource BrushTextMuted}" Margin="0,3,0,0" />
-                </StackPanel>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Spotify Masher" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource BrushAccent}" />
+                <TextBlock Text="Global hotkeys for Spotify" FontSize="12"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,3,0,0" />
             </StackPanel>
 
             <!-- Connected state -->
@@ -248,6 +261,7 @@
                      HorizontalScrollBarVisibility="Auto"
                      TextWrapping="NoWrap"
                      Padding="6" />
+        </Grid>
         </Grid>
     </Grid>
 </Window>

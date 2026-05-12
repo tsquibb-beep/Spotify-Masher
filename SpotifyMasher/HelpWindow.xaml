@@ -224,11 +224,21 @@
             <!-- ══════════════════════════════ ABOUT TAB ══════════════════════════════ -->
             <TabItem Header="About">
                 <Grid>
+                    <!-- Background watermark logo — adjust these values to taste:
+                         Width/Height  = size of the image
+                         Canvas.Left   = horizontal offset (-Width/2 centres it)
+                         Canvas.Top    = vertical offset (-Height/2 centres it)
+                         Opacity       = 0.0 (invisible) to 1.0 (full) -->
+                    <Canvas Width="0" Height="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            IsHitTestVisible="False">
+                        <Image Source="/Resources/fuspotify.png"
+                               Width="700" Height="700"
+                               Opacity="0.40"
+                               Canvas.Left="-320" Canvas.Top="-230"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                    </Canvas>
+
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Image Source="/Resources/fuspotify256.png" Width="120" Height="120"
-                               HorizontalAlignment="Center"
-                               RenderOptions.BitmapScalingMode="HighQuality"
-                               Margin="0,0,0,20" />
                         <TextBlock Text="Spotify Masher" FontSize="26" FontWeight="Bold"
                                    Foreground="{StaticResource BrushAccent}"
                                    HorizontalAlignment="Center" />
