@@ -23,6 +23,9 @@ public partial class HelpWindow : Window
         DwmHelper.SetGreenTitleBar(this);
     }
 
+    private void CopyUri_Click(object sender, RoutedEventArgs e)
+        => Clipboard.SetText("http://127.0.0.1:5001/callback");
+
     private void Link_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
