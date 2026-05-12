@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/tsquibb-beep/Spotify-Masher/releases"><img src="https://img.shields.io/github/v/release/tsquibb-beep/Spotify-Masher?style=flat-square" alt="Latest Release"></a>
+  <a href="https://github.com/tsquibb-beep/Spotify-Masher/releases/latest"><img src="https://img.shields.io/github/v/release/tsquibb-beep/Spotify-Masher?style=flat-square" alt="Latest Release"></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/.NET-10-512BD4?style=flat-square" alt=".NET 10">
 </p>
