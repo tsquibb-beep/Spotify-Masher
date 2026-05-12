@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="fuspotify256.png" width="120" alt="Spotify Masher logo">
+  <img src="fuspotify256.png" width="256" alt="Spotify Masher logo">
 </p>
 
 <h1 align="center">Spotify Masher</h1>
@@ -24,7 +24,7 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ---
 
-## Screenshot
+## What's it look like?
 
 ![Spotify Masher main window](screenshots/main.png)
 
