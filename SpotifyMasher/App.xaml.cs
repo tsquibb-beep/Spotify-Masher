@@ -2,6 +2,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
+using Microsoft.Win32;
 using SpotifyMasher.Services;
 
 namespace SpotifyMasher;
@@ -10,6 +11,7 @@ public partial class App : Application
 {
     private Mutex? _mutex;
     private TaskbarIcon? _trayIcon;
+    private MenuItem? _startupMenuItem;
 
     internal static SpotifyAuthService AuthService { get; } = new();
     internal static SpotifyApiService ApiService { get; } = new(AuthService);
@@ -31,6 +33,10 @@ public partial class App : Application
 
         _trayIcon = (TaskbarIcon)FindResource("TrayIcon");
         _trayIcon.TrayMouseDoubleClick += (_, _) => ShowMainWindow();
+        _startupMenuItem = _trayIcon.ContextMenu.Items.OfType<MenuItem>()
+            .FirstOrDefault(m => m.Header?.ToString() == "Launch at Startup");
+        if (_startupMenuItem != null)
+            _startupMenuItem.IsChecked = IsStartupEnabled();
 
         AuthService.LoadStoredTokens();
 
@@ -40,6 +46,32 @@ public partial class App : Application
 
         var window = new MainWindow();
         MainWindow = window;
+    }
+
+    private const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+    private const string RunValueName = "SpotifyMasher";
+
+    private static bool IsStartupEnabled()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(RunKey);
+        return key?.GetValue(RunValueName) is not null;
+    }
+
+    private static void SetStartupEnabled(bool enable)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(RunKey, writable: true)!;
+        if (enable)
+            key.SetValue(RunValueName, $"\"{Environment.ProcessPath}\"");
+        else
+            key.DeleteValue(RunValueName, throwOnMissingValue: false);
+    }
+
+    private void TrayStartup_Click(object sender, RoutedEventArgs e)
+    {
+        var enable = !IsStartupEnabled();
+        SetStartupEnabled(enable);
+        if (_startupMenuItem != null)
+            _startupMenuItem.IsChecked = enable;
     }
 
     internal void ShowMainWindow()
