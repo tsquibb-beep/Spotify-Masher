@@ -26,7 +26,9 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## What's it look like?
 
-![Spotify Masher main window](screenshots/main.png)
+![Spotify Masher main window](screenshots/main.png?v=2)
+
+![Spotify Masher key bindings](screenshots/keybinds.png)
 
 ![Spotify Masher key bindings](screenshots/keybinds.png)
 
