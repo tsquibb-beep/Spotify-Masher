@@ -74,10 +74,19 @@ public class SpotifyApiService
 
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
         {
-            AppLogger.Log("PlayPause: no active device, attempting play");
+            AppLogger.Log("PlayPause: no active device, looking for available device");
+            var deviceId = await GetFirstAvailableDeviceIdAsync();
+            if (deviceId == null)
+            {
+                AppLogger.Log("PlayPause: no devices available, giving up");
+                return;
+            }
+            AppLogger.Log($"PlayPause: transferring playback to device {deviceId}");
             var startReq = await BuildRequest(HttpMethod.Put, $"{BaseUrl}/me/player/play");
-            startReq.Content = new StringContent(string.Empty);
-            await _http.SendAsync(startReq);
+            startReq.Content = new StringContent(
+                $"{{\"device_ids\":[\"{deviceId}\"]}}", System.Text.Encoding.UTF8, "application/json");
+            var r = await _http.SendAsync(startReq);
+            AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
             return;
         }
 
@@ -234,6 +243,27 @@ public class SpotifyApiService
             $"{{\"ids\":[\"{trackId}\"]}}", System.Text.Encoding.UTF8, "application/json");
         var likeResponse = await _http.SendAsync(likeReq);
         AppLogger.Log($"LikeTrack: HTTP {(int)likeResponse.StatusCode}");
+    }
+
+    private async Task<string?> GetFirstAvailableDeviceIdAsync()
+    {
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player/devices");
+        var response = await _http.SendAsync(req);
+        AppLogger.Log($"GetDevices: HTTP {(int)response.StatusCode}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        var body = await response.Content.ReadAsStringAsync();
+        var json = JsonNode.Parse(body);
+        var devices = json?["devices"]?.AsArray();
+        if (devices == null || devices.Count == 0) return null;
+
+        // Prefer a Computer-type device (most likely to be this machine)
+        foreach (var device in devices)
+        {
+            if (device?["type"]?.GetValue<string>() == "Computer")
+                return device["id"]?.GetValue<string>();
+        }
+        return devices[0]?["id"]?.GetValue<string>();
     }
 
     private async Task<HttpRequestMessage> BuildRequest(HttpMethod method, string url)
