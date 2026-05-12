@@ -30,8 +30,6 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ![Spotify Masher key bindings](screenshots/keybinds.png)
 
-![Spotify Masher key bindings](screenshots/keybinds.png)
-
 ---
 
 ## Features
