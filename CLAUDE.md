@@ -15,14 +15,19 @@ This file provides guidance to Claude Code when working with code in this reposi
 ## Versioning
 - Version is stored in `version.txt` (project root) — single source of truth
 - **Update `version.txt` at the end of every session** before committing HANDOVER.md
+- The csproj reads `version.txt` at build time via MSBuild inline task and sets `<Version>`
+- `HelpWindow` reads the version at runtime from `AssemblyInformationalVersionAttribute` — no file path dependency
 - Follows SemVer: `MAJOR.MINOR.PATCH`
   - MAJOR: breaking changes / major rewrites
   - MINOR: new user-visible features
   - PATCH: bug fixes, UI polish, under-the-hood improvements
-- To release: edit `version.txt`, commit, then `git tag v0.x.x && git push --tags`
+- To release: edit `version.txt`, commit, then `git tag vX.X.X && git push --tags`
+- Then go to GitHub → Releases → create a new release from the tag, attach the published exe
 
 ## Session Handover
-- At the end of every session, update `HANDOVER.md` with current state, what was done, and what's next
+- At the end of every session, **replace** `HANDOVER.md` with a fresh document covering current state and what's next
+- HANDOVER.md is not a history log — it is a handover brief for the next session only
+- Permanent lessons and gotchas belong in CLAUDE.md, not HANDOVER.md
 
 ---
 
@@ -50,10 +55,16 @@ dotnet run
 ```
 Or build from WSL2 then double-click `bin\Debug\net10.0-windows\SpotifyMasher.exe` from Windows Explorer.
 
-### Publish (single-file exe for distribution)
+### Publish (single-file self-contained exe for distribution)
 ```powershell
-dotnet publish -r win-x64 --self-contained false -o publish/
+cd C:\Users\tamas\Projects\Spotify-Masher\SpotifyMasher
+dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/
 ```
+Output: `publish\SpotifyMasher.exe` (~170MB — expected, the .NET runtime is bundled).
+
+**Why self-contained only:** Framework-dependent single-file is similarly large for WPF because WPF's native rendering components are bundled regardless. Self-contained is the correct distribution choice.
+
+The csproj automatically applies `IncludeNativeLibrariesForSelfExtract=true` and `DebugType=None` when `PublishSingleFile=true`, producing a true single exe with no companion files.
 
 ---
 
@@ -66,6 +77,7 @@ A C# WPF application that:
 4. Executes Spotify API actions: Play/Pause, Volume, Next/Prev Track, Seek, Like, Add to Playlist
 
 **User:** Tom Squibb (tsquibb@gmail.com, GitHub: tsquibb-beep)
+**Repo:** https://github.com/tsquibb-beep/Spotify-Masher (public)
 
 ---
 
@@ -76,7 +88,7 @@ Spotify-Masher/
 ├── SpotifyMasher.slnx              ← Solution file (.NET 10 new format)
 ├── SpotifyMasher/
 │   ├── SpotifyMasher.csproj        ← net10.0-windows, UseWPF, EnableWindowsTargeting
-│   ├── App.xaml / App.xaml.cs      ← Startup, single-instance Mutex, tray icon init
+│   ├── App.xaml / App.xaml.cs      ← Startup, single-instance Mutex, tray icon init, startup registry
 │   ├── MainWindow.xaml / .cs       ← Config UI: auth panel + hotkey DataGrid
 │   ├── HelpWindow.xaml / .cs       ← Help & About modal (opened via '?' footer button)
 │   ├── DwmHelper.cs                ← P/Invoke DWMWA_CAPTION_COLOR — midnight purple title bar
@@ -95,9 +107,11 @@ Spotify-Masher/
 │       ├── Styles.xaml             ← Dark modern theme (all implicit + keyed styles)
 │       ├── icon.ico                ← App/tray icon
 │       └── fuspotify256.png        ← Logo image shown in MainWindow header
+├── screenshots/                    ← Screenshots for README.md (commit PNGs here)
+├── README.md                       ← GitHub front page: overview, features, install, getting started
 ├── version.txt                     ← SemVer single source of truth
 ├── CLAUDE.md                       ← This file
-├── HANDOVER.md                     ← Session-end summary
+├── HANDOVER.md                     ← Fresh session-end brief (replaced each session)
 └── .gitignore
 ```
 
@@ -132,7 +146,7 @@ Both files live in `%AppData%\SpotifyMasher\` (outside the repo — never commit
 1. `SpotifyAuthService.StartAuthAsync(clientId)`:
    - Generates `code_verifier` (random 64 bytes, base64url) and `code_challenge` (SHA256 → base64url)
    - Opens browser to Spotify auth URL
-   - Starts `HttpListener` on `http://localhost:5001/callback/`
+   - Starts `HttpListener` on `http://127.0.0.1:5001/callback/`
    - Waits up to 5 minutes for the redirect
    - Exchanges code → `access_token` + `refresh_token` via POST to `/api/token`
    - Persists tokens to `tokens.json`
@@ -155,6 +169,14 @@ Both files live in `%AppData%\SpotifyMasher\` (outside the repo — never commit
 - Double-clicking tray icon / "Show" context menu item calls `MainWindow.Show()` + `Activate()`
 - `MainWindow.OnClosing` cancels close and calls `Hide()` instead — app never truly closes via the X button
 - "Exit" in tray context menu: unregisters hotkeys → disposes tray → releases Mutex → `Shutdown()`
+
+### Launch at Startup
+- Tray menu has a checkable "Launch at Startup" item
+- On enable: writes `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\SpotifyMasher` = `"<path-to-exe>"`
+- On disable: deletes the registry value
+- On app start: reads registry to sync the menu item's checked state
+- **Portable-safe:** stores the exe path at the time of enabling — if the user moves the exe, they toggle it off and back on from the new location
+- The `_startupMenuItem` field in `App.xaml.cs` holds the reference — `x:Name` does not work for elements inside `Application.Resources`, so it is found by iterating `ContextMenu.Items` at startup
 
 ### Single-instance guard
 Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second instance starts, it shows a MessageBox and calls `Shutdown()`.
@@ -179,7 +201,7 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 ### Help & About window
 - `HelpWindow.xaml/.cs` — modal dialog, `WindowStartupLocation="CenterOwner"`, `ResizeMode="NoResize"`
 - Shows: Getting Started steps, action reference table, Playlist ID instructions, Tips, About/GitHub link
-- Version number read from `version.txt` (relative path from `BaseDirectory` — works in debug; adjust for published builds if needed)
+- Version read from `AssemblyInformationalVersionAttribute` at runtime (set at build time from `version.txt` via csproj MSBuild task)
 - DWM purple title bar applied via same `DwmHelper.SetGreenTitleBar`
 
 ---
@@ -201,6 +223,8 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 | Window focus after tray restore | `Activate()` alone doesn't guarantee keyboard focus on Windows 11 | Call `window.Focus()` after `Activate()` in `ShowMainWindow()` |
 | WPF Hyperlink in TextBlock | A Hyperlink is an inline element inside a `<TextBlock>`, not a standalone control | Use `<Run Text="..." /><Hyperlink NavigateUri="..." RequestNavigate="Handler">text</Hyperlink>` inside TextBlock; handler calls `Process.Start` with `UseShellExecute = true` |
 | ComboBox bound to strings via ItemsSource | Using `<ComboBoxItem>` elements with `SelectedItem="{Binding}"` produces "System.Windows.Controls.ComboBoxItem: ..." strings | Use `ItemsSource="{x:Static local:MainWindow.AvailableActions}"` with a `IReadOnlyList<string>` static property |
+| `x:Name` on elements inside `Application.Resources` | Named elements in a ResourceDictionary don't generate code-behind fields on the App class | Store a reference in a field; find the element by iterating the parent collection at runtime (e.g. `ContextMenu.Items.OfType<MenuItem>()`) |
+| WPF single-file framework-dependent is still large | WPF's native rendering DLLs are bundled even without self-contained, making the size similar | Use self-contained only; framework-dependent offers no meaningful size saving for WPF |
 
 ---
 
@@ -215,15 +239,18 @@ Named `Mutex("SpotifyMasherSingleInstance")` in `App.OnStartup`. If a second ins
 
 ## Current Status
 
-**v0.3.0**
+**v1.0.0 — publicly released on GitHub**
 - Compiles cleanly from WSL2 (`dotnet build`, 0 errors, 0 warnings)
 - Auth: Client ID input → PKCE browser flow → seamless silent token refresh on subsequent launches
 - Hotkey table: collapsible, add/delete rows, HotkeyBox captures key combos, save re-registers all hotkeys
 - All 7 actions implemented: Play/Pause, Change Volume, Next Track, Previous Track, Seek, Add to Liked, Add to Playlist
-- System tray: starts hidden, dark-themed context menu (Show / Debug Log / Exit)
+- System tray: starts hidden, dark-themed context menu (Show / Debug Log / Launch at Startup / Exit)
+- Launch at Startup: registry-based toggle in tray menu, portable-safe
 - Debug log: toggled via Ctrl+Shift+` or tray menu, hidden by default
 - Help & About dialog: opened via `?` footer button, covers all actions + playlist ID instructions
 - Auth hint text contains a clickable hyperlink to developer.spotify.com/dashboard
 - Custom icon (`icon.ico`) and logo (`fuspotify256.png`) integrated
 - Midnight purple DWM title bar on MainWindow and HelpWindow
 - Config persisted to `%AppData%\SpotifyMasher\config.json`
+- README.md on GitHub with badges, features, getting started instructions
+- `screenshots/` folder ready for screenshots (referenced in README)
