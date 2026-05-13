@@ -21,7 +21,16 @@ public partial class MainWindow : Window
         "Add to Playlist",   // Parameter: playlist ID from Spotify URL
     ];
 
+    public static IReadOnlyList<string> AvailableCorners { get; } =
+    [
+        "bottom-right",
+        "bottom-left",
+        "top-right",
+        "top-left",
+    ];
+
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
+    private readonly ObservableCollection<ProcessToastRule> _processRules = [];
     private bool _isAuthenticated;
 
     public bool IsAuthenticated
@@ -39,6 +48,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         HotkeyGrid.ItemsSource = _bindings;
+        ProcessRuleGrid.ItemsSource = _processRules;
 
         AppLogger.LineAdded += line => Dispatcher.InvokeAsync(() =>
         {
@@ -59,6 +69,8 @@ public partial class MainWindow : Window
 
         foreach (var b in config.Bindings)
             _bindings.Add(b);
+
+        LoadNotificationSettings(config.ToastSettings);
 
         AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
 
@@ -228,5 +240,54 @@ public partial class MainWindow : Window
     {
         e.Cancel = true;
         Hide();
+    }
+
+    private void ToggleNotifications_Click(object sender, RoutedEventArgs e)
+    {
+        var visible = NotifPanel.Visibility == Visibility.Visible;
+        NotifPanel.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+        NotifChevron.Text = visible ? "▸" : "▾";
+    }
+
+    private void LoadNotificationSettings(Models.ToastSettings s)
+    {
+        NotifEnabled.IsChecked = s.Enabled;
+        NotifCorner.SelectedItem = AvailableCorners.Contains(s.Corner) ? s.Corner : "bottom-right";
+        NotifOffsetX.Text = s.OffsetX.ToString();
+        NotifOffsetY.Text = s.OffsetY.ToString();
+        NotifDuration.Text = s.DurationMs.ToString();
+        NotifAlwaysOnTop.IsChecked = s.AlwaysOnTop;
+
+        _processRules.Clear();
+        foreach (var r in s.ProcessRules)
+            _processRules.Add(r);
+    }
+
+    private void SaveNotifications_Click(object sender, RoutedEventArgs e)
+    {
+        var config = App.ConfigService.Load();
+        var s = config.ToastSettings;
+
+        s.Enabled = NotifEnabled.IsChecked == true;
+        s.Corner = NotifCorner.SelectedItem?.ToString() ?? "bottom-right";
+        s.OffsetX = int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20;
+        s.OffsetY = int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20;
+        s.DurationMs = int.TryParse(NotifDuration.Text, out var dur) ? Math.Max(500, dur) : 3000;
+        s.AlwaysOnTop = NotifAlwaysOnTop.IsChecked == true;
+        s.ProcessRules = [.. _processRules];
+
+        App.ConfigService.Save(config);
+        AppLogger.Log($"Notification settings saved — corner={s.Corner} enabled={s.Enabled} rules={s.ProcessRules.Count}");
+    }
+
+    private void AddProcessRule_Click(object sender, RoutedEventArgs e)
+    {
+        _processRules.Add(new Models.ProcessToastRule());
+    }
+
+    private void DeleteProcessRule_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is Models.ProcessToastRule rule)
+            _processRules.Remove(rule);
     }
 }

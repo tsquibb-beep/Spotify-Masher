@@ -439,6 +439,43 @@
         </Setter>
     </Style>
 
+    <!-- CheckBox -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource BrushText}" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border x:Name="Box" Width="15" Height="15"
+                                Background="{StaticResource BrushSurface2}"
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1" CornerRadius="3"
+                                Margin="0,0,7,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="Check" Text="✓" FontSize="10" FontWeight="Bold"
+                                       Foreground="{StaticResource BrushAccent}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="Collapsed"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource BrushAccentHover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="DataGridCell">
         <Setter Property="Foreground" Value="{StaticResource BrushText}" />
         <Setter Property="BorderThickness" Value="0" />

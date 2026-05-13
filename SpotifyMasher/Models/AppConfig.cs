@@ -4,4 +4,5 @@ public class AppConfig
 {
     public string ClientId { get; set; } = string.Empty;
     public List<HotkeyBinding> Bindings { get; set; } = [];
+    public ToastSettings ToastSettings { get; set; } = new();
 }

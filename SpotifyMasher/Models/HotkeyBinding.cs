@@ -9,6 +9,7 @@ public class HotkeyBinding : INotifyPropertyChanged
     private string _keysDisplay = string.Empty;
     private string _action = "Change Volume";
     private string _parameter = "+5";
+    private bool _showToast = true;
 
     public string KeysDisplay
     {
@@ -31,6 +32,12 @@ public class HotkeyBinding : INotifyPropertyChanged
     {
         get => _parameter;
         set { _parameter = value; OnPropertyChanged(nameof(Parameter)); }
+    }
+
+    public bool ShowToast
+    {
+        get => _showToast;
+        set { _showToast = value; OnPropertyChanged(nameof(ShowToast)); }
     }
 
     [JsonIgnore]

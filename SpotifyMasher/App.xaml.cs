@@ -17,6 +17,7 @@ public partial class App : Application
     internal static SpotifyApiService ApiService { get; } = new(AuthService);
     internal static HotkeyService HotkeyService { get; } = new(ApiService);
     internal static ConfigService ConfigService { get; } = new();
+    internal static ToastService ToastService { get; } = new(ConfigService);
 
     protected override void OnStartup(StartupEventArgs e)
     {

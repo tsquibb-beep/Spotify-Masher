@@ -58,6 +58,7 @@
             <RowDefinition Height="Auto" />   <!-- Header -->
             <RowDefinition Height="Auto" />   <!-- Auth form (disconnected only) -->
             <RowDefinition Height="Auto" />   <!-- Hotkey section (collapsible) -->
+            <RowDefinition Height="Auto" />   <!-- Notification settings (collapsible) -->
             <RowDefinition Height="Auto" />   <!-- Footer -->
             <RowDefinition Height="Auto" />   <!-- Debug log (Ctrl+Shift+` to toggle) -->
         </Grid.RowDefinitions>
@@ -185,6 +186,16 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
+                        <DataGridTemplateColumn Header="Toast" Width="52">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding ShowToast, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="4,3"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
                         <DataGridTemplateColumn Header="" Width="36">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -200,8 +211,148 @@
             </Border>
         </Grid>
 
+        <!-- ══ Notification Settings (collapsible) ══ -->
+        <Border Grid.Row="3" Margin="0,0,0,10"
+                Background="{StaticResource BrushSurface}"
+                BorderBrush="{StaticResource BrushBorder}"
+                BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+                <Button Click="ToggleNotifications_Click"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="14,10" HorizontalContentAlignment="Left"
+                        Cursor="Hand">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="NotifChevron" Text="▸" FontSize="11"
+                                   Foreground="{StaticResource BrushTextMuted}"
+                                   Margin="0,0,7,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Notification Settings" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrushTextMuted}"/>
+                    </StackPanel>
+                </Button>
+
+                <StackPanel x:Name="NotifPanel" Visibility="Collapsed" Margin="14,0,14,14">
+
+                    <CheckBox x:Name="NotifEnabled" Content="Enable toast notifications"
+                              Margin="0,0,0,10"/>
+
+                    <!-- Corner + Offsets -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="55"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="55"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Position:" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                        <ComboBox x:Name="NotifCorner" Grid.Column="1"
+                                  ItemsSource="{x:Static local:MainWindow.AvailableCorners}"/>
+                        <TextBlock Grid.Column="3" Text="X offset:" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBox x:Name="NotifOffsetX" Grid.Column="4" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="6" Text="Y offset:" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBox x:Name="NotifOffsetY" Grid.Column="7" TextAlignment="Right"/>
+                    </Grid>
+
+                    <!-- Duration + AlwaysOnTop -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Duration (ms):" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                        <TextBox x:Name="NotifDuration" Grid.Column="1" TextAlignment="Right"/>
+                        <CheckBox x:Name="NotifAlwaysOnTop" Grid.Column="2"
+                                  Content="Always on top  (borderless windowed games only)"
+                                  Margin="16,0,0,0" VerticalAlignment="Center" FontSize="11"/>
+                    </Grid>
+
+                    <!-- Per-process overrides -->
+                    <TextBlock Text="Per-process overrides" FontSize="12" FontWeight="SemiBold"
+                               Margin="0,0,0,4"/>
+                    <TextBlock FontSize="11" Foreground="{StaticResource BrushTextMuted}"
+                               Margin="0,0,0,6" TextWrapping="Wrap">
+                        When this .exe is the foreground window, use the specified position instead.
+                    </TextBlock>
+
+                    <Border BorderBrush="{StaticResource BrushBorder}"
+                            Background="{StaticResource BrushBg}"
+                            BorderThickness="1" CornerRadius="6"
+                            ClipToBounds="True" MaxHeight="150" Padding="1" Margin="0,0,0,8">
+                        <DataGrid x:Name="ProcessRuleGrid"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Process (.exe)" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}"
+                                                     Margin="4,3"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Corner" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{x:Static local:MainWindow.AvailableCorners}"
+                                                      SelectedItem="{Binding Corner, UpdateSourceTrigger=PropertyChanged}"
+                                                      Margin="4,3"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="X" Width="55">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding OffsetX, UpdateSourceTrigger=PropertyChanged}"
+                                                     Margin="4,3" TextAlignment="Right"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Y" Width="55">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}"
+                                                     Margin="4,3" TextAlignment="Right"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="" Width="36">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="✕" Style="{StaticResource DeleteButton}"
+                                                    Tag="{Binding}" Click="DeleteProcessRule_Click"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="+ Add Rule" Style="{StaticResource GhostButton}"
+                                Click="AddProcessRule_Click"/>
+                        <Button Grid.Column="2" Content="Save Notifications" Style="{StaticResource PrimaryButton}"
+                                Click="SaveNotifications_Click"/>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
         <!-- ══ Footer ══ -->
-        <Grid Grid.Row="3" Margin="0,0,0,6">
+        <Grid Grid.Row="4" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -233,7 +384,7 @@
         </Grid>
 
         <!-- ══ Debug Log (Ctrl+Shift+` to toggle, or via tray menu) ══ -->
-        <Grid x:Name="DebugSection" Grid.Row="4" Visibility="Collapsed">
+        <Grid x:Name="DebugSection" Grid.Row="5" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="130" />

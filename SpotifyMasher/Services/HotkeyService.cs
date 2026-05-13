@@ -66,7 +66,7 @@ public class HotkeyService
         AppLogger.Log($"Hotkey FIRED: Key={binding.Key} Modifiers={binding.Modifiers} Action='{binding.Action}' Param='{binding.Parameter}'");
         HotkeyFired?.Invoke(binding.Action);
 
-        Task task = binding.Action switch
+        Task<string?> task = binding.Action switch
         {
             "Play / Pause"    => _spotify.PlayPauseAsync(),
             "Change Volume"   => HandleChangeVolume(binding.Parameter),
@@ -81,35 +81,40 @@ public class HotkeyService
         _ = task.ContinueWith(t =>
         {
             if (t.IsFaulted)
+            {
                 AppLogger.Log($"  → action FAILED: {t.Exception?.GetBaseException().Message}");
+                return;
+            }
+            if (binding.ShowToast && t.Result is string msg)
+                App.ToastService.Show(msg);
         });
     }
 
-    private Task HandleChangeVolume(string parameter)
+    private Task<string?> HandleChangeVolume(string parameter)
     {
         if (!int.TryParse(parameter.Replace("%", "").Trim(), out int delta))
         {
             AppLogger.Log($"  → ignored (could not parse '{parameter}' as int)");
-            return Task.CompletedTask;
+            return Task.FromResult<string?>(null);
         }
         AppLogger.Log($"  → AdjustVolumeAsync({delta})");
         return _spotify.AdjustVolumeAsync(delta);
     }
 
-    private Task HandleSeek(string parameter)
+    private Task<string?> HandleSeek(string parameter)
     {
         if (!int.TryParse(parameter.Replace("s", "").Trim(), out int seconds))
         {
             AppLogger.Log($"  → ignored (could not parse '{parameter}' as int seconds)");
-            return Task.CompletedTask;
+            return Task.FromResult<string?>(null);
         }
         AppLogger.Log($"  → SeekAsync({seconds}s)");
         return _spotify.SeekAsync(seconds);
     }
 
-    private static Task LogUnknown(string action)
+    private static Task<string?> LogUnknown(string action)
     {
         AppLogger.Log($"  → ignored (unknown action '{action}')");
-        return Task.CompletedTask;
+        return Task.FromResult<string?>(null);
     }
 }
