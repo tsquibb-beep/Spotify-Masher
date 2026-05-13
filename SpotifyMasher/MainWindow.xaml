@@ -363,12 +363,6 @@
                 </StackPanel>
             </StackPanel>
 
-            <TextBlock Grid.Column="1"
-                       Text="Closes to tray"
-                       Foreground="{StaticResource BrushTextMuted}"
-                       FontSize="11" VerticalAlignment="Center"
-                       Margin="0,0,12,0"/>
-
             <Button Grid.Column="2" Content="?" Width="30" Height="30" Padding="0"
                     Style="{StaticResource GhostButton}"
                     Click="Help_Click" ToolTip="Help &amp; About" />

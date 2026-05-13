@@ -238,29 +238,32 @@
                                RenderOptions.BitmapScalingMode="HighQuality" />
                     </Canvas>
 
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="Spotify Masher" FontSize="26" FontWeight="Bold"
-                                   Foreground="{StaticResource BrushAccent}"
-                                   HorizontalAlignment="Center" />
-                        <TextBlock x:Name="VersionText" Text="v0.0.0"
-                                   FontSize="12" Foreground="{StaticResource BrushTextMuted}"
-                                   HorizontalAlignment="Center" Margin="0,4,0,24" />
-                        <TextBlock FontStyle="Italic" FontSize="13" Foreground="{StaticResource BrushTextMuted}"
-                                   HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
-                                   MaxWidth="380"
-                                   Text="Because Spotify keep spotifucking it all up"
-                                   Margin="0,0,0,8" />
-                        <TextBlock FontSize="13" Foreground="{StaticResource BrushTextMuted}"
-                                   HorizontalAlignment="Center"
-                                   Text="Built by Tom and Claude"
-                                   Margin="0,0,0,28" />
-                        <TextBlock HorizontalAlignment="Center" FontSize="12">
-                            <Hyperlink NavigateUri="https://github.com/tsquibb-beep/Spotify-Masher"
-                                       RequestNavigate="Link_RequestNavigate">
-                                github.com/tsquibb-beep/Spotify-Masher
-                            </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
+                    <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Background="#33000000" CornerRadius="10" Padding="32,24">
+                        <StackPanel>
+                            <TextBlock Text="Spotify Masher" FontSize="26" FontWeight="Bold"
+                                       Foreground="{StaticResource BrushAccent}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="VersionText" Text="v0.0.0"
+                                       FontSize="12" Foreground="{StaticResource BrushTextMuted}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,24" />
+                            <TextBlock FontStyle="Italic" FontSize="13" Foreground="{StaticResource BrushTextMuted}"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                                       MaxWidth="380"
+                                       Text="Because Spotify keep spotifucking it all up"
+                                       Margin="0,0,0,8" />
+                            <TextBlock FontSize="13" Foreground="{StaticResource BrushTextMuted}"
+                                       HorizontalAlignment="Center"
+                                       Text="Built by Tom and Claude"
+                                       Margin="0,0,0,28" />
+                            <TextBlock HorizontalAlignment="Center" FontSize="12">
+                                <Hyperlink NavigateUri="https://github.com/tsquibb-beep/Spotify-Masher"
+                                           RequestNavigate="Link_RequestNavigate">
+                                    github.com/tsquibb-beep/Spotify-Masher
+                                </Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </TabItem>
 
