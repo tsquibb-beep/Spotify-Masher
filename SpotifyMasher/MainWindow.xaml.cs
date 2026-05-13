@@ -266,6 +266,8 @@ public partial class MainWindow : Window
 
     private void SaveNotifications_Click(object sender, RoutedEventArgs e)
     {
+        ToggleNotifications_Click(sender, e);
+
         var config = App.ConfigService.Load();
         var s = config.ToastSettings;
 
