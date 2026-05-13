@@ -18,48 +18,39 @@
     </Window.Resources>
 
     <Border Background="{StaticResource BrushSurface}"
-            BorderBrush="{StaticResource BrushAccent}"
+            BorderBrush="{StaticResource BrushBorder}"
             BorderThickness="1"
-            CornerRadius="8">
+            CornerRadius="8"
+            Padding="14,10"
+            MinWidth="180"
+            MaxWidth="300"
+            Cursor="SizeAll"
+            MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Border.Effect>
-            <DropShadowEffect Color="#000000" Opacity="0.55" BlurRadius="14" ShadowDepth="3"/>
+            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="12" ShadowDepth="2"/>
         </Border.Effect>
-        <StackPanel>
-
-            <!-- Drag strip -->
-            <Border x:Name="DragStrip"
-                    Background="{StaticResource BrushSurface2}"
-                    CornerRadius="8,8,0,0"
-                    Padding="12,8"
-                    Cursor="SizeAll"
-                    MouseLeftButtonDown="DragStrip_MouseLeftButtonDown">
-                <TextBlock Text="Drag to position, then click Done"
-                           FontSize="11" Foreground="{StaticResource BrushTextMuted}"
-                           HorizontalAlignment="Center"/>
-            </Border>
-
-            <!-- Sample toast body -->
-            <StackPanel Margin="14,10,14,4">
-                <TextBlock Text="❤️ Liked"
-                           Foreground="{StaticResource BrushText}"
-                           FontFamily="Segoe UI Variable" FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="Song Name – Artist"
-                           Foreground="{StaticResource BrushTextMuted}"
-                           FontFamily="Segoe UI Variable" FontSize="12"
-                           Margin="0,2,0,0"/>
+        <DockPanel>
+            <!-- ✓ / ✕ buttons docked to the right, top-aligned -->
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                        VerticalAlignment="Top" Margin="8,0,0,0">
+                <Button Content="✓" Click="DoneButton_Click"
+                        Background="Transparent" BorderThickness="0"
+                        Foreground="{StaticResource BrushAccent}"
+                        FontSize="15" FontWeight="Bold"
+                        Padding="3,0" Cursor="Hand"/>
+                <Button Content="✕" Click="CancelButton_Click"
+                        Background="Transparent" BorderThickness="0"
+                        Foreground="#FF5555"
+                        FontSize="14"
+                        Padding="3,0" Cursor="Hand"/>
             </StackPanel>
-
-            <!-- Done / Cancel -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                        Margin="14,8,14,12">
-                <Button Content="Cancel" Style="{StaticResource GhostButton}"
-                        Padding="12,5" Margin="0,0,8,0"
-                        Click="CancelButton_Click"/>
-                <Button Content="Done" Style="{StaticResource PrimaryButton}"
-                        Padding="16,5"
-                        Click="DoneButton_Click"/>
-            </StackPanel>
-
-        </StackPanel>
+            <!-- Sample toast text — same font/size/line-height as real toast -->
+            <TextBlock Text="❤️ Liked&#10;Song Name – Artist"
+                       Foreground="{StaticResource BrushText}"
+                       FontFamily="Segoe UI Variable"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       LineHeight="18"/>
+        </DockPanel>
     </Border>
 </Window>

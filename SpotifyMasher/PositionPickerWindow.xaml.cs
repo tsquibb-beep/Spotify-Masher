@@ -28,7 +28,7 @@ public partial class PositionPickerWindow : Window
         };
     }
 
-    private void DragStrip_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         => DragMove();
 
     private void DoneButton_Click(object sender, RoutedEventArgs e)
