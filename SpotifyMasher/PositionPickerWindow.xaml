@@ -29,28 +29,28 @@
         <Border.Effect>
             <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="12" ShadowDepth="2"/>
         </Border.Effect>
-        <DockPanel>
-            <!-- ✓ / ✕ buttons docked to the right, top-aligned -->
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                        VerticalAlignment="Top" Margin="8,0,0,0">
-                <Button Content="✓" Click="DoneButton_Click"
-                        Background="Transparent" BorderThickness="0"
-                        Foreground="{StaticResource BrushAccent}"
-                        FontSize="15" FontWeight="Bold"
-                        Padding="3,0" Cursor="Hand"/>
-                <Button Content="✕" Click="CancelButton_Click"
-                        Background="Transparent" BorderThickness="0"
-                        Foreground="#FF5555"
-                        FontSize="14"
-                        Padding="3,0" Cursor="Hand"/>
-            </StackPanel>
-            <!-- Sample toast text — same font/size/line-height as real toast -->
+        <Grid>
+            <!-- Sample toast text — same font/size/line-height as real toast, gets full width -->
             <TextBlock Text="❤️ Liked&#10;Song Name – Artist"
                        Foreground="{StaticResource BrushText}"
                        FontFamily="Segoe UI Variable"
                        FontSize="13"
                        TextWrapping="Wrap"
                        LineHeight="18"/>
-        </DockPanel>
+            <!-- ✓ / ✕ overlaid top-right — use TextBlocks so Foreground renders correctly -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right" VerticalAlignment="Top">
+                <TextBlock Text="✓"
+                           Foreground="{StaticResource BrushAccent}"
+                           FontSize="15" FontWeight="Bold"
+                           Padding="3,0" Cursor="Hand"
+                           MouseLeftButtonDown="DoneText_MouseDown"/>
+                <TextBlock Text="✕"
+                           Foreground="#FF5555"
+                           FontSize="14"
+                           Padding="3,0" Cursor="Hand"
+                           MouseLeftButtonDown="CancelText_MouseDown"/>
+            </StackPanel>
+        </Grid>
     </Border>
 </Window>

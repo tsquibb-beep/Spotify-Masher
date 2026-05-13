@@ -266,6 +266,35 @@ public partial class MainWindow : Window
         _processRules.Clear();
         foreach (var r in s.ProcessRules)
             _processRules.Add(r);
+
+        var indicatorCorner = s.PinnedX is double px && s.PinnedY is double py
+            ? ComputeCornerFromPosition(px, py)
+            : (AvailableCorners.Contains(s.Corner) ? s.Corner : "bottom-right");
+        UpdateCornerIndicator(indicatorCorner);
+    }
+
+    private void NotifCorner_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_pendingPinnedX is null && NotifCorner.SelectedItem is string corner)
+            UpdateCornerIndicator(corner);
+    }
+
+    private void UpdateCornerIndicator(string corner)
+    {
+        var active   = (System.Windows.Media.Brush)FindResource("BrushAccent");
+        var inactive = (System.Windows.Media.Brush)FindResource("BrushBorder");
+        CornerIndTL.Fill = corner == "top-left"     ? active : inactive;
+        CornerIndTR.Fill = corner == "top-right"    ? active : inactive;
+        CornerIndBL.Fill = corner == "bottom-left"  ? active : inactive;
+        CornerIndBR.Fill = corner == "bottom-right" ? active : inactive;
+    }
+
+    private static string ComputeCornerFromPosition(double x, double y)
+    {
+        var area = System.Windows.SystemParameters.WorkArea;
+        bool isLeft = x + 140 < area.Left + area.Width  / 2;
+        bool isTop  = y + 30  < area.Top  + area.Height / 2;
+        return $"{(isTop ? "top" : "bottom")}-{(isLeft ? "left" : "right")}";
     }
 
     private void SaveNotifications_Click(object sender, RoutedEventArgs e)
@@ -313,6 +342,7 @@ public partial class MainWindow : Window
 
         _pendingPinnedX = picker.Result.X;
         _pendingPinnedY = picker.Result.Y;
+        UpdateCornerIndicator(ComputeCornerFromPosition(_pendingPinnedX.Value, _pendingPinnedY.Value));
     }
 
     private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)

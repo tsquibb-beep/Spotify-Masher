@@ -233,17 +233,38 @@
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="55"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Position:" VerticalAlignment="Center"
                                    Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
                         <ComboBox x:Name="NotifCorner" Grid.Column="1"
-                                  ItemsSource="{x:Static local:MainWindow.AvailableCorners}"/>
+                                  ItemsSource="{x:Static local:MainWindow.AvailableCorners}"
+                                  SelectionChanged="NotifCorner_SelectionChanged"/>
                         <TextBlock Grid.Column="3" Text="X offset:" VerticalAlignment="Center"
                                    Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
                         <TextBox x:Name="NotifOffsetX" Grid.Column="4" TextAlignment="Right"/>
                         <TextBlock Grid.Column="6" Text="Y offset:" VerticalAlignment="Center"
                                    Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
                         <TextBox x:Name="NotifOffsetY" Grid.Column="7" TextAlignment="Right"/>
+                        <!-- Corner indicator: 2×2 dot grid showing active quadrant -->
+                        <Border Grid.Column="9" Width="34" Height="34" VerticalAlignment="Center"
+                                BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="4">
+                            <Grid Margin="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse x:Name="CornerIndTL" Grid.Row="0" Grid.Column="0" Margin="2"/>
+                                <Ellipse x:Name="CornerIndTR" Grid.Row="0" Grid.Column="1" Margin="2"/>
+                                <Ellipse x:Name="CornerIndBL" Grid.Row="1" Grid.Column="0" Margin="2"/>
+                                <Ellipse x:Name="CornerIndBR" Grid.Row="1" Grid.Column="1" Margin="2"/>
+                            </Grid>
+                        </Border>
                     </Grid>
 
                     <Button Content="Set Position..." Style="{StaticResource GhostButton}"
