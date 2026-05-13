@@ -293,4 +293,32 @@ public partial class MainWindow : Window
         if (sender is Button btn && btn.Tag is Models.ProcessToastRule rule)
             _processRules.Remove(rule);
     }
+
+    private void SetGlobalPosition_Click(object sender, RoutedEventArgs e)
+    {
+        var corner  = NotifCorner.SelectedItem?.ToString() ?? "bottom-right";
+        var offsetX = int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20;
+        var offsetY = int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20;
+
+        var picker = new PositionPickerWindow(corner, offsetX, offsetY) { Owner = this };
+        if (picker.ShowDialog() != true) return;
+
+        var (c, x, y) = picker.Result;
+        NotifCorner.SelectedItem = c;
+        NotifOffsetX.Text = x.ToString();
+        NotifOffsetY.Text = y.ToString();
+    }
+
+    private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: Models.ProcessToastRule rule }) return;
+
+        var picker = new PositionPickerWindow(rule.Corner, rule.OffsetX, rule.OffsetY) { Owner = this };
+        if (picker.ShowDialog() != true) return;
+
+        var (c, x, y) = picker.Result;
+        rule.Corner  = c;
+        rule.OffsetX = x;
+        rule.OffsetY = y;
+    }
 }

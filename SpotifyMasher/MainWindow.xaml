@@ -246,6 +246,10 @@
                         <TextBox x:Name="NotifOffsetY" Grid.Column="7" TextAlignment="Right"/>
                     </Grid>
 
+                    <Button Content="Set Position..." Style="{StaticResource GhostButton}"
+                            HorizontalAlignment="Left" Margin="0,0,0,10"
+                            Click="SetGlobalPosition_Click"/>
+
                     <!-- Duration + AlwaysOnTop -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
@@ -308,6 +312,15 @@
                                         <DataTemplate>
                                             <TextBox Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="4,3" TextAlignment="Right"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="" Width="32">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="📍" Style="{StaticResource GhostButton}"
+                                                    Tag="{Binding}" Click="SetProcessRulePosition_Click"
+                                                    Padding="2,0" FontSize="13"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

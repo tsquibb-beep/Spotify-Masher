@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace SpotifyMasher.Models;
 
 public class ToastSettings
@@ -11,10 +13,37 @@ public class ToastSettings
     public List<ProcessToastRule> ProcessRules { get; set; } = [];
 }
 
-public class ProcessToastRule
+public class ProcessToastRule : INotifyPropertyChanged
 {
-    public string ProcessName { get; set; } = string.Empty;
-    public string Corner { get; set; } = "top-right";
-    public int OffsetX { get; set; } = 20;
-    public int OffsetY { get; set; } = 20;
+    private string _processName = string.Empty;
+    private string _corner = "top-right";
+    private int _offsetX = 20;
+    private int _offsetY = 20;
+
+    public string ProcessName
+    {
+        get => _processName;
+        set { _processName = value; OnPropertyChanged(nameof(ProcessName)); }
+    }
+
+    public string Corner
+    {
+        get => _corner;
+        set { _corner = value; OnPropertyChanged(nameof(Corner)); }
+    }
+
+    public int OffsetX
+    {
+        get => _offsetX;
+        set { _offsetX = value; OnPropertyChanged(nameof(OffsetX)); }
+    }
+
+    public int OffsetY
+    {
+        get => _offsetY;
+        set { _offsetY = value; OnPropertyChanged(nameof(OffsetY)); }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
