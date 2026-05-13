@@ -244,9 +244,10 @@ public partial class MainWindow : Window
 
     private void ToggleNotifications_Click(object sender, RoutedEventArgs e)
     {
-        var visible = NotifPanel.Visibility == Visibility.Visible;
-        NotifPanel.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
-        NotifChevron.Text = visible ? "▸" : "▾";
+        var open = NotifSection.Visibility == Visibility.Visible;
+        NotifSection.Visibility = open ? Visibility.Collapsed : Visibility.Visible;
+        NotifCollapsedButton.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        NotifExpandedButton.Visibility = open ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void LoadNotificationSettings(Models.ToastSettings s)

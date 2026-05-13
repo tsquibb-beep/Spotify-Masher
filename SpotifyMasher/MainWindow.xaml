@@ -212,25 +212,12 @@
         </Grid>
 
         <!-- ══ Notification Settings (collapsible) ══ -->
-        <Border Grid.Row="3" Margin="0,0,0,10"
+        <Border x:Name="NotifSection" Grid.Row="3" Margin="0,0,0,10"
                 Background="{StaticResource BrushSurface}"
                 BorderBrush="{StaticResource BrushBorder}"
-                BorderThickness="1" CornerRadius="8">
-            <StackPanel>
-                <Button Click="ToggleNotifications_Click"
-                        Background="Transparent" BorderThickness="0"
-                        Padding="14,10" HorizontalContentAlignment="Left"
-                        Cursor="Hand">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="NotifChevron" Text="▸" FontSize="11"
-                                   Foreground="{StaticResource BrushTextMuted}"
-                                   Margin="0,0,7,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Notification Settings" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource BrushTextMuted}"/>
-                    </StackPanel>
-                </Button>
-
-                <StackPanel x:Name="NotifPanel" Visibility="Collapsed" Margin="14,0,14,14">
+                BorderThickness="1" CornerRadius="8"
+                Visibility="Collapsed">
+            <StackPanel Margin="14">
 
                     <CheckBox x:Name="NotifEnabled" Content="Enable toast notifications"
                               Margin="0,0,0,10"/>
@@ -336,18 +323,8 @@
                         </DataGrid>
                     </Border>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="+ Add Rule" Style="{StaticResource GhostButton}"
-                                Click="AddProcessRule_Click"/>
-                        <Button Grid.Column="2" Content="Save Notifications" Style="{StaticResource PrimaryButton}"
-                                Click="SaveNotifications_Click"/>
-                    </Grid>
-                </StackPanel>
+                    <Button Content="+ Add Rule" Style="{StaticResource GhostButton}"
+                            HorizontalAlignment="Left" Click="AddProcessRule_Click"/>
             </StackPanel>
         </Border>
 
@@ -359,19 +336,31 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- When hotkeys collapsed: show Edit button -->
-            <StackPanel x:Name="HotkeyCollapsedButtons" Grid.Column="0" Orientation="Horizontal">
-                <Button Content="Edit Hotkeys" Style="{StaticResource GhostButton}"
-                        Click="EditHotkeys_Click" />
-            </StackPanel>
-
-            <!-- When hotkeys expanded: show Add + Save -->
-            <StackPanel x:Name="HotkeyExpandedButtons" Grid.Column="0" Orientation="Horizontal"
-                        Visibility="Collapsed">
-                <Button Content="+ Add Hotkey" Style="{StaticResource GhostButton}"
-                        Click="AddHotkey_Click" Margin="0,0,8,0" />
-                <Button x:Name="SaveButton" Content="Save" Style="{StaticResource PrimaryButton}"
-                        Click="Save_Click" />
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <!-- When hotkeys collapsed: Edit Hotkeys -->
+                <StackPanel x:Name="HotkeyCollapsedButtons" Orientation="Horizontal" Margin="0,0,8,0">
+                    <Button Content="Edit Hotkeys" Style="{StaticResource GhostButton}"
+                            Click="EditHotkeys_Click"/>
+                </StackPanel>
+                <!-- When hotkeys expanded: + Add Hotkey + Save -->
+                <StackPanel x:Name="HotkeyExpandedButtons" Orientation="Horizontal"
+                            Margin="0,0,8,0" Visibility="Collapsed">
+                    <Button Content="+ Add Hotkey" Style="{StaticResource GhostButton}"
+                            Click="AddHotkey_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="SaveButton" Content="Save" Style="{StaticResource PrimaryButton}"
+                            Click="Save_Click"/>
+                </StackPanel>
+                <!-- When notifications collapsed: Notifications -->
+                <StackPanel x:Name="NotifCollapsedButton" Orientation="Horizontal">
+                    <Button Content="Notifications" Style="{StaticResource GhostButton}"
+                            Click="ToggleNotifications_Click"/>
+                </StackPanel>
+                <!-- When notifications expanded: Save Notifications -->
+                <StackPanel x:Name="NotifExpandedButton" Orientation="Horizontal"
+                            Visibility="Collapsed">
+                    <Button Content="Save Notifications" Style="{StaticResource PrimaryButton}"
+                            Click="SaveNotifications_Click"/>
+                </StackPanel>
             </StackPanel>
 
             <Button Grid.Column="1" Content="Minimise to Tray"
