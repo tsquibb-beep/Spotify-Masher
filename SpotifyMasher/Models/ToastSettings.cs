@@ -11,6 +11,10 @@ public class ToastSettings
     public int DurationMs { get; set; } = 3000;
     public bool AlwaysOnTop { get; set; } = false;
     public List<ProcessToastRule> ProcessRules { get; set; } = [];
+
+    // Set by the drag picker — used directly instead of corner+offset when non-null
+    public double? PinnedX { get; set; } = null;
+    public double? PinnedY { get; set; } = null;
 }
 
 public class ProcessToastRule : INotifyPropertyChanged
@@ -19,6 +23,8 @@ public class ProcessToastRule : INotifyPropertyChanged
     private string _corner = "top-right";
     private int _offsetX = 20;
     private int _offsetY = 20;
+    private double? _pinnedX;
+    private double? _pinnedY;
 
     public string ProcessName
     {
@@ -42,6 +48,18 @@ public class ProcessToastRule : INotifyPropertyChanged
     {
         get => _offsetY;
         set { _offsetY = value; OnPropertyChanged(nameof(OffsetY)); }
+    }
+
+    public double? PinnedX
+    {
+        get => _pinnedX;
+        set { _pinnedX = value; OnPropertyChanged(nameof(PinnedX)); }
+    }
+
+    public double? PinnedY
+    {
+        get => _pinnedY;
+        set { _pinnedY = value; OnPropertyChanged(nameof(PinnedY)); }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

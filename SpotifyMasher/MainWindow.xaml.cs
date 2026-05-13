@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private readonly ObservableCollection<ProcessToastRule> _processRules = [];
     private bool _isAuthenticated;
+    private double? _pendingPinnedX, _pendingPinnedY;
 
     public bool IsAuthenticated
     {
@@ -259,6 +260,9 @@ public partial class MainWindow : Window
         NotifDuration.Text = s.DurationMs.ToString();
         NotifAlwaysOnTop.IsChecked = s.AlwaysOnTop;
 
+        _pendingPinnedX = s.PinnedX;
+        _pendingPinnedY = s.PinnedY;
+
         _processRules.Clear();
         foreach (var r in s.ProcessRules)
             _processRules.Add(r);
@@ -278,9 +282,11 @@ public partial class MainWindow : Window
         s.DurationMs = int.TryParse(NotifDuration.Text, out var dur) ? Math.Max(500, dur) : 3000;
         s.AlwaysOnTop = NotifAlwaysOnTop.IsChecked == true;
         s.ProcessRules = [.. _processRules];
+        s.PinnedX = _pendingPinnedX;
+        s.PinnedY = _pendingPinnedY;
 
         App.ConfigService.Save(config);
-        AppLogger.Log($"Notification settings saved — corner={s.Corner} enabled={s.Enabled} rules={s.ProcessRules.Count}");
+        AppLogger.Log($"Notification settings saved — pinned={s.PinnedX?.ToString("F0") ?? "no"} corner={s.Corner} enabled={s.Enabled} rules={s.ProcessRules.Count}");
     }
 
     private void AddProcessRule_Click(object sender, RoutedEventArgs e)
@@ -296,29 +302,47 @@ public partial class MainWindow : Window
 
     private void SetGlobalPosition_Click(object sender, RoutedEventArgs e)
     {
-        var corner  = NotifCorner.SelectedItem?.ToString() ?? "bottom-right";
-        var offsetX = int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20;
-        var offsetY = int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20;
+        var (startLeft, startTop) = ResolvePickerStart(
+            NotifCorner.SelectedItem?.ToString() ?? "bottom-right",
+            int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20,
+            int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20,
+            _pendingPinnedX, _pendingPinnedY);
 
-        var picker = new PositionPickerWindow(corner, offsetX, offsetY) { Owner = this };
+        var picker = new PositionPickerWindow(startLeft, startTop) { Owner = this };
         if (picker.ShowDialog() != true) return;
 
-        var (c, x, y) = picker.Result;
-        NotifCorner.SelectedItem = c;
-        NotifOffsetX.Text = x.ToString();
-        NotifOffsetY.Text = y.ToString();
+        _pendingPinnedX = picker.Result.X;
+        _pendingPinnedY = picker.Result.Y;
     }
 
     private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: Models.ProcessToastRule rule }) return;
 
-        var picker = new PositionPickerWindow(rule.Corner, rule.OffsetX, rule.OffsetY) { Owner = this };
+        var (startLeft, startTop) = ResolvePickerStart(
+            rule.Corner, rule.OffsetX, rule.OffsetY, rule.PinnedX, rule.PinnedY);
+
+        var picker = new PositionPickerWindow(startLeft, startTop) { Owner = this };
         if (picker.ShowDialog() != true) return;
 
-        var (c, x, y) = picker.Result;
-        rule.Corner  = c;
-        rule.OffsetX = x;
-        rule.OffsetY = y;
+        rule.PinnedX = picker.Result.X;
+        rule.PinnedY = picker.Result.Y;
+    }
+
+    private static (double Left, double Top) ResolvePickerStart(
+        string corner, int offsetX, int offsetY, double? pinnedX, double? pinnedY)
+    {
+        if (pinnedX is double px && pinnedY is double py)
+            return (px, py);
+
+        const double w = 280, h = 60;
+        var area = System.Windows.SystemParameters.WorkArea;
+        return corner switch
+        {
+            "top-left"    => (area.Left + offsetX,        area.Top + offsetY),
+            "top-right"   => (area.Right - w - offsetX,   area.Top + offsetY),
+            "bottom-left" => (area.Left + offsetX,         area.Bottom - h - offsetY),
+            _             => (area.Right - w - offsetX,   area.Bottom - h - offsetY),
+        };
     }
 }
