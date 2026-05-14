@@ -7,8 +7,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         SizeToContent="WidthAndHeight"
-        Topmost="True"
-        Width="280">
+        Topmost="True">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -22,7 +21,7 @@
             BorderThickness="1"
             CornerRadius="8"
             Padding="14,10"
-            MinWidth="180"
+            MinWidth="240"
             MaxWidth="300"
             Cursor="SizeAll"
             MouseLeftButtonDown="Border_MouseLeftButtonDown">
@@ -30,33 +29,44 @@
             <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="12" ShadowDepth="2"/>
         </Border.Effect>
         <Grid>
-            <!-- Sample toast text — same font/size/line-height as real toast, gets full width -->
-            <TextBlock Text="❤️ Liked&#10;Song Name – Artist"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sample toast text — single line, matches real toast font/size -->
+            <TextBlock Grid.Column="0"
+                       Text="🔊 Volume: 80%"
                        Foreground="{StaticResource BrushText}"
                        FontFamily="Segoe UI Variable"
                        FontSize="13"
-                       TextWrapping="Wrap"
-                       LineHeight="18"/>
-            <!-- ✓ / ✕ overlaid top-right — use TextBlocks so Foreground renders correctly -->
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right" VerticalAlignment="Top">
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+
+            <!-- ✓ / ✕ confirm/cancel buttons — use TextBlocks so Foreground renders correctly -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="✓"
                            Foreground="{StaticResource BrushAccent}"
-                           FontSize="15" FontWeight="Bold"
-                           Padding="3,0" Cursor="Hand"
+                           FontSize="20" FontWeight="Bold"
+                           Padding="6,2" Cursor="Hand"
                            MouseLeftButtonDown="DoneText_MouseDown"/>
                 <TextBlock Text="✕"
                            Foreground="#FF5555"
-                           FontSize="14"
-                           Padding="3,0" Cursor="Hand"
+                           FontSize="18"
+                           Padding="4,2" Cursor="Hand"
                            MouseLeftButtonDown="CancelText_MouseDown"/>
             </StackPanel>
-            <!-- Anchor indicator: accent dot marks the top-left corner = saved position -->
+
+            <!-- Anchor indicator: right-angle triangle at the top-left corner
+                 The right-angle vertex = the window's (Left, Top) = the saved position.
+                 Canvas is zero-size so it doesn't affect layout; negative offsets
+                 place the triangle at the visible corner of the Border. -->
             <Canvas Width="0" Height="0"
+                    Grid.ColumnSpan="2"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     IsHitTestVisible="False">
-                <Ellipse Canvas.Left="-8" Canvas.Top="-5"
-                         Width="9" Height="9"
+                <Polygon Canvas.Left="-6" Canvas.Top="-2"
+                         Points="0,0 20,0 0,20"
                          Fill="{StaticResource BrushAccent}"/>
             </Canvas>
         </Grid>
