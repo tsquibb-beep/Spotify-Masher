@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<ProcessToastRule> _processRules = [];
     private bool _isAuthenticated;
     private double? _pendingPinnedX, _pendingPinnedY;
+    private bool _loadingSettings;
 
     public bool IsAuthenticated
     {
@@ -253,6 +254,7 @@ public partial class MainWindow : Window
 
     private void LoadNotificationSettings(Models.ToastSettings s)
     {
+        _loadingSettings = true;
         NotifEnabled.IsChecked = s.Enabled;
         NotifCorner.SelectedItem = AvailableCorners.Contains(s.Corner) ? s.Corner : "bottom-right";
         NotifOffsetX.Text = s.OffsetX.ToString();
@@ -267,15 +269,46 @@ public partial class MainWindow : Window
         foreach (var r in s.ProcessRules)
             _processRules.Add(r);
 
-        var indicatorCorner = s.PinnedX is double px && s.PinnedY is double py
+        bool freehand = s.PinnedX is not null;
+        ModeCorner.IsChecked = !freehand;
+        ModeFreehand.IsChecked = freehand;
+        _loadingSettings = false;
+
+        ApplyPositionMode(freehand);
+
+        var indicatorCorner = freehand && s.PinnedX is double px && s.PinnedY is double py
             ? ComputeCornerFromPosition(px, py)
             : (AvailableCorners.Contains(s.Corner) ? s.Corner : "bottom-right");
         UpdateCornerIndicator(indicatorCorner);
     }
 
+    private void ModeCorner_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_loadingSettings) return;
+        _pendingPinnedX = null;
+        _pendingPinnedY = null;
+        ApplyPositionMode(freehand: false);
+        if (NotifCorner.SelectedItem is string corner)
+            UpdateCornerIndicator(corner);
+    }
+
+    private void ModeFreehand_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_loadingSettings) return;
+        ApplyPositionMode(freehand: true);
+        if (_pendingPinnedX is double px && _pendingPinnedY is double py)
+            UpdateCornerIndicator(ComputeCornerFromPosition(px, py));
+    }
+
+    private void ApplyPositionMode(bool freehand)
+    {
+        CornerOffsetPanel.IsEnabled = !freehand;
+        FreehandPanel.IsEnabled = freehand;
+    }
+
     private void NotifCorner_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (_pendingPinnedX is null && NotifCorner.SelectedItem is string corner)
+        if (ModeCorner.IsChecked == true && NotifCorner.SelectedItem is string corner)
             UpdateCornerIndicator(corner);
     }
 
@@ -343,14 +376,6 @@ public partial class MainWindow : Window
         _pendingPinnedX = picker.Result.X;
         _pendingPinnedY = picker.Result.Y;
         UpdateCornerIndicator(ComputeCornerFromPosition(_pendingPinnedX.Value, _pendingPinnedY.Value));
-    }
-
-    private void ResetGlobalPosition_Click(object sender, RoutedEventArgs e)
-    {
-        _pendingPinnedX = null;
-        _pendingPinnedY = null;
-        if (NotifCorner.SelectedItem is string corner)
-            UpdateCornerIndicator(corner);
     }
 
     private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)

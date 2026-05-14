@@ -222,33 +222,49 @@
                     <CheckBox x:Name="NotifEnabled" Content="Enable toast notifications"
                               Margin="0,0,0,10"/>
 
-                    <!-- Corner + Offsets -->
-                    <Grid Margin="0,0,0,8">
+                    <!-- Position mode selector -->
+                    <TextBlock Text="Position" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+
+                    <!-- Mode: Corner + offset -->
+                    <RadioButton x:Name="ModeCorner" Content="Corner + offset"
+                                 GroupName="PosMode" Checked="ModeCorner_Checked"
+                                 Margin="0,0,0,4"/>
+                    <Grid x:Name="CornerOffsetPanel" Margin="24,2,0,10">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.35"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="16"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="55"/>
-                            <ColumnDefinition Width="12"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="55"/>
-                            <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Position:" VerticalAlignment="Center"
+                        <TextBlock Grid.Column="0" Text="Corner:" VerticalAlignment="Center"
                                    Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
                         <ComboBox x:Name="NotifCorner" Grid.Column="1"
                                   ItemsSource="{x:Static local:MainWindow.AvailableCorners}"
                                   SelectionChanged="NotifCorner_SelectionChanged"/>
-                        <TextBlock Grid.Column="3" Text="X offset:" VerticalAlignment="Center"
-                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
-                        <TextBox x:Name="NotifOffsetX" Grid.Column="4" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="6" Text="Y offset:" VerticalAlignment="Center"
-                                   Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,6,0"/>
-                        <TextBox x:Name="NotifOffsetY" Grid.Column="7" TextAlignment="Right"/>
+                        <!-- Offset X / Y grouped under one label -->
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                            <TextBlock Text="Offset" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,10,0"/>
+                            <TextBlock Text="X:" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,5,0"/>
+                            <TextBox x:Name="NotifOffsetX" Width="45" TextAlignment="Right"/>
+                            <TextBlock Text="Y:" VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="8,0,5,0"/>
+                            <TextBox x:Name="NotifOffsetY" Width="45" TextAlignment="Right"/>
+                        </StackPanel>
                         <!-- Corner indicator: 2×2 dot grid showing active quadrant -->
-                        <Border Grid.Column="9" Width="34" Height="34" VerticalAlignment="Center"
+                        <Border Grid.Column="4" Width="34" Height="34" VerticalAlignment="Center"
                                 BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="4">
                             <Grid Margin="4">
                                 <Grid.RowDefinitions>
@@ -267,12 +283,13 @@
                         </Border>
                     </Grid>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button Content="Set Position..." Style="{StaticResource GhostButton}"
-                                Margin="0,0,8,0"
+                    <!-- Mode: Freehand position -->
+                    <RadioButton x:Name="ModeFreehand" Content="Freehand position"
+                                 GroupName="PosMode" Checked="ModeFreehand_Checked"
+                                 Margin="0,0,0,4"/>
+                    <StackPanel x:Name="FreehandPanel" Orientation="Horizontal" Margin="24,2,0,10">
+                        <Button Content="Drag to set position" Style="{StaticResource GhostButton}"
                                 Click="SetGlobalPosition_Click"/>
-                        <Button Content="Reset Position" Style="{StaticResource GhostButton}"
-                                Click="ResetGlobalPosition_Click"/>
                     </StackPanel>
 
                     <!-- Duration + AlwaysOnTop -->
