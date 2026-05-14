@@ -30,8 +30,8 @@
         </Border.Effect>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto" MinWidth="100"/>
             </Grid.ColumnDefinitions>
 
             <!-- Sample toast text — single line, matches real toast font/size -->
@@ -41,20 +41,47 @@
                        FontFamily="Segoe UI Variable"
                        FontSize="13"
                        VerticalAlignment="Center"
-                       Margin="0,0,10,0"/>
+                       Margin="0,0,10,0" Height="18"/>
 
             <!-- ✓ / ✕ confirm/cancel buttons — use TextBlocks so Foreground renders correctly -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Height="24" VerticalAlignment="Center" Width="100" HorizontalAlignment="Center">
                 <TextBlock Text="✓"
                            Foreground="{StaticResource BrushAccent}"
-                           FontSize="20" FontWeight="Bold"
+                           FontSize="25" FontWeight="Bold"
                            Padding="6,2" Cursor="Hand"
-                           MouseLeftButtonDown="DoneText_MouseDown"/>
+                           RenderTransformOrigin="0.5,0.5"
+                           MouseLeftButtonDown="DoneText_MouseDown" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30,0,0,0">
+                    <TextBlock.RenderTransform>
+                        <ScaleTransform/>
+                    </TextBlock.RenderTransform>
+                    <TextBlock.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimation
+                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                        From="1.0" To="1.25" Duration="0:0:0.7">
+                                        <DoubleAnimation.EasingFunction>
+                                            <SineEase EasingMode="EaseInOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation
+                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                        From="1.0" To="1.25" Duration="0:0:0.7">
+                                        <DoubleAnimation.EasingFunction>
+                                            <SineEase EasingMode="EaseInOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </TextBlock.Triggers>
+                </TextBlock>
                 <TextBlock Text="✕"
                            Foreground="#FF5555"
-                           FontSize="18"
+                           FontSize="25"
                            Padding="4,2" Cursor="Hand"
-                           MouseLeftButtonDown="CancelText_MouseDown"/>
+                           MouseLeftButtonDown="CancelText_MouseDown" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,0,0"/>
             </StackPanel>
 
             <!-- Anchor indicator: right-angle triangle at the top-left corner
@@ -62,12 +89,11 @@
                  Canvas is zero-size so it doesn't affect layout; negative offsets
                  place the triangle at the visible corner of the Border. -->
             <Canvas Width="0" Height="0"
-                    Grid.ColumnSpan="2"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
                     IsHitTestVisible="False">
-                <Polygon Canvas.Left="-6" Canvas.Top="-2"
-                         Points="0,0 20,0 0,20"
-                         Fill="{StaticResource BrushAccent}"/>
+                <Polygon Canvas.Left="-70" Canvas.Top="-23"
+                         Points="0,0 9,0 0,9"
+                         Fill="{StaticResource BrushAccent}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             </Canvas>
         </Grid>
     </Border>
