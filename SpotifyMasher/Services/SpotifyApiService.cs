@@ -18,8 +18,8 @@ public class SpotifyApiService
         var current = await GetVolumeAsync();
         if (current < 0)
         {
-            AppLogger.Log($"AdjustVolume: GetVolume returned {current}, aborting");
-            return null;
+            AppLogger.Log($"AdjustVolume: GetVolume returned {current} — no active device");
+            return "🔊 No active device";
         }
 
         var newVolume = Math.Clamp(current + delta, 0, 100);

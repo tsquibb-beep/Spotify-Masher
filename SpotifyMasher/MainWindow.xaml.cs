@@ -345,6 +345,14 @@ public partial class MainWindow : Window
         UpdateCornerIndicator(ComputeCornerFromPosition(_pendingPinnedX.Value, _pendingPinnedY.Value));
     }
 
+    private void ResetGlobalPosition_Click(object sender, RoutedEventArgs e)
+    {
+        _pendingPinnedX = null;
+        _pendingPinnedY = null;
+        if (NotifCorner.SelectedItem is string corner)
+            UpdateCornerIndicator(corner);
+    }
+
     private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: Models.ProcessToastRule rule }) return;
