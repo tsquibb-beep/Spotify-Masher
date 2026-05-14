@@ -312,7 +312,7 @@
                                Margin="0,0,0,4"/>
                     <TextBlock FontSize="11" Foreground="{StaticResource BrushTextMuted}"
                                Margin="0,0,0,6" TextWrapping="Wrap">
-                        When this .exe is the foreground window, use the specified position instead.
+                        When this .exe is the foreground window, use a freehand position instead. Click 📍 to drag-set the position.
                     </TextBlock>
 
                     <Border BorderBrush="{StaticResource BrushBorder}"
@@ -329,31 +329,6 @@
                                         <DataTemplate>
                                             <TextBox Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="4,3"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="Corner" Width="120">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <ComboBox ItemsSource="{x:Static local:MainWindow.AvailableCorners}"
-                                                      SelectedItem="{Binding Corner, UpdateSourceTrigger=PropertyChanged}"
-                                                      Margin="4,3"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="X" Width="55">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBox Text="{Binding OffsetX, UpdateSourceTrigger=PropertyChanged}"
-                                                     Margin="4,3" TextAlignment="Right"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="Y" Width="55">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBox Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}"
-                                                     Margin="4,3" TextAlignment="Right"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
