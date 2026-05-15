@@ -15,7 +15,7 @@ public class ToastService(ConfigService configService)
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
-    public void Show(string message)
+    public void Show(ToastPayload payload)
     {
         var settings = configService.Load().ToastSettings;
         if (!settings.Enabled) return;
@@ -27,7 +27,7 @@ public class ToastService(ConfigService configService)
             _current?.ForceClose();
             _current = null;
 
-            var toast = new ToastWindow(message, settings.DurationMs, settings.AlwaysOnTop);
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop);
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.Closed += (_, _) => { if (_current == toast) _current = null; };
             _current = toast;

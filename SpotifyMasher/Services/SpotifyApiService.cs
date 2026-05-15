@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json.Nodes;
+using SpotifyMasher.Models;
 
 namespace SpotifyMasher.Services;
 
@@ -13,19 +14,19 @@ public class SpotifyApiService
 
     public SpotifyApiService(SpotifyAuthService auth) => _auth = auth;
 
-    public async Task<string?> AdjustVolumeAsync(int delta)
+    public async Task<ToastPayload?> AdjustVolumeAsync(int delta)
     {
         var current = await GetVolumeAsync();
         if (current < 0)
         {
             AppLogger.Log($"AdjustVolume: GetVolume returned {current} — no active device");
-            return "🔊 No active device";
+            return new ToastPayload("🔊 No active device");
         }
 
         var newVolume = Math.Clamp(current + delta, 0, 100);
         AppLogger.Log($"AdjustVolume: current={current} delta={delta} new={newVolume}");
         await SetVolumeAsync(newVolume);
-        return $"🔊 Volume: {newVolume}%";
+        return new ToastPayload($"🔊 Volume: {newVolume}%");
     }
 
     private async Task<int> GetVolumeAsync()
@@ -67,7 +68,7 @@ public class SpotifyApiService
         AppLogger.Log($"SetVolume: HTTP {(int)response.StatusCode} {response.StatusCode}");
     }
 
-    public async Task<string?> PlayPauseAsync()
+    public async Task<ToastPayload?> PlayPauseAsync()
     {
         AppLogger.Log("PlayPause: GET current state");
         var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
@@ -87,7 +88,7 @@ public class SpotifyApiService
             startReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(startReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return "▶ Resumed";
+            return new ToastPayload("▶ Resumed");
         }
 
         var body = await response.Content.ReadAsStringAsync();
@@ -104,7 +105,7 @@ public class SpotifyApiService
             pauseReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(pauseReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return $"⏸ Paused{trackInfo}";
+            return new ToastPayload($"⏸ Paused{trackInfo}");
         }
         else
         {
@@ -113,31 +114,43 @@ public class SpotifyApiService
             playReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(playReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return $"▶ Resumed{trackInfo}";
+            return new ToastPayload($"▶ Resumed{trackInfo}");
         }
     }
 
-    public async Task<string?> NextTrackAsync()
+    public async Task<ToastPayload?> NextTrackAsync()
     {
         AppLogger.Log("NextTrack: POST /me/player/next");
         var req = await BuildRequest(HttpMethod.Post, $"{BaseUrl}/me/player/next");
         req.Content = new StringContent(string.Empty);
         var response = await _http.SendAsync(req);
         AppLogger.Log($"NextTrack: HTTP {(int)response.StatusCode}");
-        return response.IsSuccessStatusCode ? "⏭ Next Track" : null;
+
+        if (!response.IsSuccessStatusCode) return null;
+
+        await Task.Delay(600);
+        var (trackName, artistName, _, _) = await GetCurrentTrackInfoAsync();
+        var trackInfo = FormatTrackInfo(trackName, artistName);
+        return new ToastPayload($"⏭ Next Track{trackInfo}");
     }
 
-    public async Task<string?> PreviousTrackAsync()
+    public async Task<ToastPayload?> PreviousTrackAsync()
     {
         AppLogger.Log("PreviousTrack: POST /me/player/previous");
         var req = await BuildRequest(HttpMethod.Post, $"{BaseUrl}/me/player/previous");
         req.Content = new StringContent(string.Empty);
         var response = await _http.SendAsync(req);
         AppLogger.Log($"PreviousTrack: HTTP {(int)response.StatusCode}");
-        return response.IsSuccessStatusCode ? "⏮ Previous Track" : null;
+
+        if (!response.IsSuccessStatusCode) return null;
+
+        await Task.Delay(600);
+        var (trackName, artistName, _, _) = await GetCurrentTrackInfoAsync();
+        var trackInfo = FormatTrackInfo(trackName, artistName);
+        return new ToastPayload($"⏮ Previous Track{trackInfo}");
     }
 
-    public async Task<string?> SeekAsync(int deltaSeconds)
+    public async Task<ToastPayload?> SeekAsync(int deltaSeconds)
     {
         AppLogger.Log($"Seek: GET current position, then seek by {deltaSeconds}s");
         var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player");
@@ -165,10 +178,10 @@ public class SpotifyApiService
         AppLogger.Log($"Seek: HTTP {(int)seekResponse.StatusCode}");
 
         var sign = deltaSeconds >= 0 ? "+" : string.Empty;
-        return seekResponse.IsSuccessStatusCode ? $"⏩ Seek {sign}{deltaSeconds}s" : null;
+        return seekResponse.IsSuccessStatusCode ? new ToastPayload($"⏩ Seek {sign}{deltaSeconds}s") : null;
     }
 
-    public async Task<string?> AddToPlaylistAsync(string parameter)
+    public async Task<ToastPayload?> AddToPlaylistAsync(string parameter)
     {
         var playlistId = parameter.Trim();
 
@@ -226,10 +239,10 @@ public class SpotifyApiService
         AppLogger.Log($"AddToPlaylist: HTTP {(int)addResponse.StatusCode}");
 
         var trackInfo = FormatTrackInfo(trackName, artistName);
-        return addResponse.IsSuccessStatusCode ? $"➕ Added{trackInfo}" : null;
+        return addResponse.IsSuccessStatusCode ? new ToastPayload($"➕ Added{trackInfo}") : null;
     }
 
-    public async Task<string?> LikeCurrentTrackAsync()
+    public async Task<ToastPayload?> LikeCurrentTrackAsync()
     {
         AppLogger.Log("LikeTrack: GET currently playing");
         var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player/currently-playing");
@@ -263,7 +276,70 @@ public class SpotifyApiService
         AppLogger.Log($"LikeTrack: HTTP {(int)likeResponse.StatusCode}");
 
         var trackInfo = FormatTrackInfo(trackName, artistName);
-        return likeResponse.IsSuccessStatusCode ? $"❤️ Liked{trackInfo}" : null;
+        return likeResponse.IsSuccessStatusCode ? new ToastPayload($"❤️ Liked{trackInfo}") : null;
+    }
+
+    public async Task<ToastPayload?> ShowCurrentTrackAsync()
+    {
+        AppLogger.Log("ShowCurrentTrack: GET currently playing");
+        var (trackName, artistName, albumName, artUrl) = await GetCurrentTrackInfoAsync();
+
+        if (string.IsNullOrEmpty(trackName))
+        {
+            AppLogger.Log("ShowCurrentTrack: nothing playing");
+            return new ToastPayload("♪ Nothing playing");
+        }
+
+        var lines = new System.Text.StringBuilder();
+        lines.Append(trackName);
+        if (!string.IsNullOrEmpty(artistName)) lines.Append($"\n{artistName}");
+        if (!string.IsNullOrEmpty(albumName))  lines.Append($"\n{albumName}");
+
+        byte[]? imageBytes = null;
+        if (!string.IsNullOrEmpty(artUrl))
+        {
+            try
+            {
+                AppLogger.Log($"ShowCurrentTrack: downloading album art from {artUrl}");
+                imageBytes = await _http.GetByteArrayAsync(artUrl);
+                AppLogger.Log($"ShowCurrentTrack: art downloaded ({imageBytes.Length} bytes)");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Log($"ShowCurrentTrack: art download failed — {ex.Message}");
+            }
+        }
+
+        return new ToastPayload(lines.ToString(), imageBytes);
+    }
+
+    private async Task<(string? trackName, string? artistName, string? albumName, string? artUrl)>
+        GetCurrentTrackInfoAsync()
+    {
+        var req = await BuildRequest(HttpMethod.Get, $"{BaseUrl}/me/player/currently-playing");
+        var response = await _http.SendAsync(req);
+
+        AppLogger.Log($"GetCurrentTrackInfo: HTTP {(int)response.StatusCode}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+            return (null, null, null, null);
+
+        var body = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(body)) return (null, null, null, null);
+
+        var json = JsonNode.Parse(body);
+        var trackName  = json?["item"]?["name"]?.GetValue<string>();
+        var artistName = json?["item"]?["artists"]?[0]?["name"]?.GetValue<string>();
+        var albumName  = json?["item"]?["album"]?["name"]?.GetValue<string>();
+
+        // Prefer the 300×300 image (index 1); fall back to largest (index 0)
+        var images = json?["item"]?["album"]?["images"]?.AsArray();
+        string? artUrl = null;
+        if (images != null && images.Count > 0)
+            artUrl = (images.Count > 1 ? images[1] : images[0])?["url"]?.GetValue<string>();
+
+        AppLogger.Log($"GetCurrentTrackInfo: track='{trackName}' artist='{artistName}' album='{albumName}' art={artUrl != null}");
+        return (trackName, artistName, albumName, artUrl);
     }
 
     private async Task<string?> GetFirstAvailableDeviceIdAsync()

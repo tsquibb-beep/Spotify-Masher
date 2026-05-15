@@ -23,9 +23,9 @@
             BorderBrush="{StaticResource BrushBorder}"
             BorderThickness="1"
             CornerRadius="8"
-            Padding="14,10"
+            Padding="12,10"
             MinWidth="180"
-            MaxWidth="300"
+            MaxWidth="360"
             RenderTransformOrigin="0.5,0.5">
         <Border.Effect>
             <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="12" ShadowDepth="2"/>
@@ -33,11 +33,39 @@
         <Border.RenderTransform>
             <TranslateTransform x:Name="SlideTransform"/>
         </Border.RenderTransform>
-        <TextBlock x:Name="MessageText"
-                   Foreground="{StaticResource BrushText}"
-                   FontFamily="Segoe UI Variable"
-                   FontSize="13"
-                   TextWrapping="Wrap"
-                   LineHeight="18"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <!-- Album art column: auto-sized, collapses to 0 when no image -->
+                <ColumnDefinition x:Name="ArtColumn" Width="Auto"/>
+                <!-- Spacer between art and text: collapses when no image -->
+                <ColumnDefinition x:Name="ArtGapColumn" Width="Auto"/>
+                <!-- Text column -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Image x:Name="AlbumArt"
+                   Grid.Column="0"
+                   Width="72" Height="72"
+                   Stretch="UniformToFill"
+                   VerticalAlignment="Center"
+                   Visibility="Collapsed">
+                <Image.Clip>
+                    <RectangleGeometry RadiusX="4" RadiusY="4" Rect="0,0,72,72"/>
+                </Image.Clip>
+            </Image>
+
+            <!-- Gap only present when art is visible — set in code-behind -->
+            <Grid x:Name="ArtGap" Grid.Column="1" Width="10" Visibility="Collapsed"/>
+
+            <TextBlock x:Name="MessageText"
+                       Grid.Column="2"
+                       Foreground="{StaticResource BrushText}"
+                       FontFamily="Segoe UI Variable"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       LineHeight="18"
+                       VerticalAlignment="Center"/>
+        </Grid>
     </Border>
 </Window>

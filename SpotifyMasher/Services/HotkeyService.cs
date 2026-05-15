@@ -66,15 +66,16 @@ public class HotkeyService
         AppLogger.Log($"Hotkey FIRED: Key={binding.Key} Modifiers={binding.Modifiers} Action='{binding.Action}' Param='{binding.Parameter}'");
         HotkeyFired?.Invoke(binding.Action);
 
-        Task<string?> task = binding.Action switch
+        Task<ToastPayload?> task = binding.Action switch
         {
-            "Play / Pause"    => _spotify.PlayPauseAsync(),
-            "Change Volume"   => HandleChangeVolume(binding.Parameter),
-            "Next Track"      => _spotify.NextTrackAsync(),
-            "Previous Track"  => _spotify.PreviousTrackAsync(),
-            "Seek"            => HandleSeek(binding.Parameter),
-            "Add to Liked"    => _spotify.LikeCurrentTrackAsync(),
-            "Add to Playlist" => _spotify.AddToPlaylistAsync(binding.Parameter),
+            "Play / Pause"       => _spotify.PlayPauseAsync(),
+            "Change Volume"      => HandleChangeVolume(binding.Parameter),
+            "Next Track"         => _spotify.NextTrackAsync(),
+            "Previous Track"     => _spotify.PreviousTrackAsync(),
+            "Seek"               => HandleSeek(binding.Parameter),
+            "Add to Liked"       => _spotify.LikeCurrentTrackAsync(),
+            "Add to Playlist"    => _spotify.AddToPlaylistAsync(binding.Parameter),
+            "Show Current Track" => _spotify.ShowCurrentTrackAsync(),
             _ => LogUnknown(binding.Action)
         };
 
@@ -85,36 +86,36 @@ public class HotkeyService
                 AppLogger.Log($"  → action FAILED: {t.Exception?.GetBaseException().Message}");
                 return;
             }
-            if (binding.ShowToast && t.Result is string msg)
-                App.ToastService.Show(msg);
+            if (binding.ShowToast && t.Result is ToastPayload payload)
+                App.ToastService.Show(payload);
         });
     }
 
-    private Task<string?> HandleChangeVolume(string parameter)
+    private Task<ToastPayload?> HandleChangeVolume(string parameter)
     {
         if (!int.TryParse(parameter.Replace("%", "").Trim(), out int delta))
         {
             AppLogger.Log($"  → ignored (could not parse '{parameter}' as int)");
-            return Task.FromResult<string?>(null);
+            return Task.FromResult<ToastPayload?>(null);
         }
         AppLogger.Log($"  → AdjustVolumeAsync({delta})");
         return _spotify.AdjustVolumeAsync(delta);
     }
 
-    private Task<string?> HandleSeek(string parameter)
+    private Task<ToastPayload?> HandleSeek(string parameter)
     {
         if (!int.TryParse(parameter.Replace("s", "").Trim(), out int seconds))
         {
             AppLogger.Log($"  → ignored (could not parse '{parameter}' as int seconds)");
-            return Task.FromResult<string?>(null);
+            return Task.FromResult<ToastPayload?>(null);
         }
         AppLogger.Log($"  → SeekAsync({seconds}s)");
         return _spotify.SeekAsync(seconds);
     }
 
-    private static Task<string?> LogUnknown(string action)
+    private static Task<ToastPayload?> LogUnknown(string action)
     {
         AppLogger.Log($"  → ignored (unknown action '{action}')");
-        return Task.FromResult<string?>(null);
+        return Task.FromResult<ToastPayload?>(null);
     }
 }

@@ -19,6 +19,7 @@ public partial class MainWindow : Window
         "Seek",              // Parameter: +10 or -10 (seconds)
         "Add to Liked",
         "Add to Playlist",   // Parameter: playlist ID from Spotify URL
+        "Show Current Track",
     ];
 
     public static IReadOnlyList<string> AvailableCorners { get; } =

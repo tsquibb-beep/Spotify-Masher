@@ -60,14 +60,14 @@
                                 <Storyboard RepeatBehavior="Forever" AutoReverse="True">
                                     <DoubleAnimation
                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                        From="1.0" To="1.25" Duration="0:0:0.7">
+                                        From="1.0" To="1.15" Duration="0:0:0.5">
                                         <DoubleAnimation.EasingFunction>
                                             <SineEase EasingMode="EaseInOut"/>
                                         </DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                     <DoubleAnimation
                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                        From="1.0" To="1.25" Duration="0:0:0.7">
+                                        From="1.0" To="1.15" Duration="0:0:0.5">
                                         <DoubleAnimation.EasingFunction>
                                             <SineEase EasingMode="EaseInOut"/>
                                         </DoubleAnimation.EasingFunction>
