@@ -193,6 +193,10 @@
                                 <TextBlock Grid.Row="8" Grid.Column="0" Style="{StaticResource TblCell}" Text="Add to Playlist" />
                                 <TextBlock Grid.Row="8" Grid.Column="1" Style="{StaticResource TblCellMuted}" Text="Playlist ID" />
                                 <TextBlock Grid.Row="8" Grid.Column="2" Style="{StaticResource TblCell}" Text="Add the current track to a specific playlist." />
+
+                                <TextBlock Grid.Row="9" Grid.Column="0" Style="{StaticResource TblCell}" Text="Show Current Track" />
+                                <TextBlock Grid.Row="9" Grid.Column="1" Style="{StaticResource TblCellMuted}" Text="(none)" />
+                                <TextBlock Grid.Row="9" Grid.Column="2" Style="{StaticResource TblCell}" Text="Show a toast with the track name, artist, album, and cover art." />
                             </Grid>
                         </Border>
 
@@ -205,6 +209,19 @@
                                        TextWrapping="Wrap"
                                        Text="https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO?si=abc" />
                         </Border>
+
+                        <!-- Toast Notifications -->
+                        <TextBlock Style="{StaticResource SectionHead}" Text="Toast Notifications" />
+                        <TextBlock Style="{StaticResource BodyText}"
+                                   Text="Each hotkey row has a Show Toast toggle — enable it to see a notification when that action fires. Configure toasts in the Notifications section of the main window." />
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,2"
+                                   Text="Two position modes:" />
+                        <TextBlock Style="{StaticResource BodyText}"
+                                   Text="• Corner + offset — pick a screen corner and set how many pixels in from the edge." />
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
+                                   Text="• Freehand — click Drag to set position and drag the preview to wherever you want." />
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
+                                   Text="Per-app overrides let you set a different toast position when a specific app is in focus. Add the process name (e.g. chrome.exe) and use the drag picker to set its position." />
 
                         <!-- Tips -->
                         <TextBlock Style="{StaticResource SectionHead}" Text="Tips" />

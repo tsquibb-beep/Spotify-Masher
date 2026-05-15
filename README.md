@@ -26,9 +26,11 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## What's it look like?
 
-![Spotify Masher main window](screenshots/main.png?v=2)
+![Spotify Masher main window](screenshots/main.png?v=3)
 
-![Spotify Masher key bindings](screenshots/keybinds.png)
+![Spotify Masher hotkey bindings](screenshots/hotkeys.png?v=1)
+
+![Spotify Masher notification settings](screenshots/notifications.png?v=1)
 
 ---
 
@@ -36,11 +38,13 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 - **Global hotkeys** — fire from any window, even fullscreen games
 - **Play / Pause** the current track
-- **Next / Previous** track
+- **Next / Previous** track — toast shows the new track name and artist
 - **Seek** forward or backward by a configurable number of seconds
 - **Volume** up or down
 - **Like** the current track (adds to Liked Songs)
 - **Add to Playlist** — paste any Spotify playlist URL, URI, or ID
+- **Show Current Track** — toast with track name, artist, album, and cover art
+- **Toast notifications** — customisable position, duration, and per-app overrides
 - Starts silently in the system tray on launch
 - Silent token refresh — no re-login after the first time
 - Optional **Launch at Startup** from the tray menu
@@ -75,7 +79,7 @@ No installation required — just run it from wherever you like.
 ### 3. Set up your hotkeys
 
 1. Open the app from the system tray
-2. Click **Edit**, add your hotkeys, and click **Save**
+2. Click **Edit Hotkeys**, add your hotkeys, and click **Save**
 
 ---
 
