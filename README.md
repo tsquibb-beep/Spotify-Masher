@@ -53,12 +53,17 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## Download
 
-Go to the [Releases page](https://github.com/tsquibb-beep/Spotify-Masher/releases/latest) and download `SpotifyMasher.exe`.
+Go to the [Releases page](https://github.com/tsquibb-beep/Spotify-Masher/releases/latest) and grab the version that suits you:
 
-No installation required — just run it from wherever you like.
+| File | Size | Requirement |
+|---|---|---|
+| `SpotifyMasher.exe` | ~170 MB | Nothing — just run it |
+| `SpotifyMasher-slim.exe` | ~3 MB | [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) |
 
-> **Why is it ~170 MB?**  
-> The .NET 10 runtime is bundled inside the exe so you don't need to install anything else. This is expected and normal for self-contained .NET apps.
+No installation required — run from wherever you like.
+
+> **Which should I pick?**  
+> If you're unsure, grab `SpotifyMasher.exe` — it works on any Windows 10/11 machine with no prerequisites. The slim version is for people who already have .NET 10 installed and want a smaller file. Make sure you have the **Desktop Runtime** (not just the base .NET Runtime) — it's the middle column on the download page.
 
 ---
 
