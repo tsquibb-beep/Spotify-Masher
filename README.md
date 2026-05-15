@@ -18,7 +18,7 @@
 
 ## Overview
 
-Spotify Masher is a Windows system tray app. Set up hotkeys once, and control Spotify from any app, any window — no switching focus, no clicking.
+Spotify Masher is a lightweight Windows system tray app. Set up hotkeys once, and control Spotify from any app, any window — no switching focus, no clicking. Optional toast notifications keep you informed of what's playing without interrupting your flow.
 
 After a one-time login it runs silently in the background, refreshing its Spotify connection automatically.
 
