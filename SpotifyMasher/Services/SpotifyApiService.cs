@@ -290,11 +290,6 @@ public class SpotifyApiService
             return new ToastPayload("♪ Nothing playing");
         }
 
-        var lines = new System.Text.StringBuilder();
-        lines.Append(trackName);
-        if (!string.IsNullOrEmpty(artistName)) lines.Append($"\n{artistName}");
-        if (!string.IsNullOrEmpty(albumName))  lines.Append($"\n{albumName}");
-
         byte[]? imageBytes = null;
         if (!string.IsNullOrEmpty(artUrl))
         {
@@ -310,7 +305,12 @@ public class SpotifyApiService
             }
         }
 
-        return new ToastPayload(lines.ToString(), imageBytes);
+        return new ToastPayload(
+            Message: trackName,
+            ImageBytes: imageBytes,
+            TrackName: trackName,
+            ArtistName: artistName,
+            AlbumName: albumName);
     }
 
     private async Task<(string? trackName, string? artistName, string? albumName, string? artUrl)>

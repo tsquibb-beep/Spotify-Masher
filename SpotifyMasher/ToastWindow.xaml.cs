@@ -16,9 +16,39 @@ public partial class ToastWindow : Window
     public ToastWindow(ToastPayload payload, int durationMs, bool alwaysOnTop)
     {
         InitializeComponent();
-        MessageText.Text = payload.Message;
         Topmost = alwaysOnTop;
         Opacity = 0;
+
+        if (payload.TrackName is not null)
+            PopulateRichLayout(payload);
+        else
+            MessageText.Text = payload.Message;
+
+        _dismissTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
+        _dismissTimer.Tick += (_, _) => { _dismissTimer.Stop(); BeginDismiss(); };
+    }
+
+    private void PopulateRichLayout(ToastPayload payload)
+    {
+        // Widen the border for the rich layout
+        ToastBorder.MaxWidth = 520;
+        ToastBorder.MinWidth = 280;
+
+        MessageText.Visibility = Visibility.Collapsed;
+        TrackPanel.Visibility = Visibility.Visible;
+
+        TrackText.Text   = payload.TrackName ?? string.Empty;
+        ArtistText.Text  = payload.ArtistName ?? string.Empty;
+        AlbumText.Text   = payload.AlbumName ?? string.Empty;
+
+        // Hide empty lines so the panel doesn't leave a gap
+        if (string.IsNullOrEmpty(ArtistText.Text)) ArtistText.Visibility = Visibility.Collapsed;
+        if (string.IsNullOrEmpty(AlbumText.Text))  AlbumText.Visibility  = Visibility.Collapsed;
+
+        // Adaptive font sizes — reduce for long strings, TextTrimming handles the rest
+        TrackText.FontSize  = AdaptiveSize(payload.TrackName,  defaultSize: 14, min: 11.5);
+        ArtistText.FontSize = AdaptiveSize(payload.ArtistName, defaultSize: 12.5, min: 10.5);
+        AlbumText.FontSize  = AdaptiveSize(payload.AlbumName,  defaultSize: 11.5, min: 10);
 
         if (payload.ImageBytes is { Length: > 0 } bytes)
         {
@@ -33,13 +63,22 @@ public partial class ToastWindow : Window
 
                 AlbumArt.Source = bitmap;
                 AlbumArt.Visibility = Visibility.Visible;
-                ArtGap.Visibility = Visibility.Visible;
+                ArtGap.Visibility   = Visibility.Visible;
             }
             catch { }
         }
+    }
 
-        _dismissTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
-        _dismissTimer.Tick += (_, _) => { _dismissTimer.Stop(); BeginDismiss(); };
+    // Reduce font size for longer strings; TextTrimming handles anything that still overflows.
+    private static double AdaptiveSize(string? text, double defaultSize, double min)
+    {
+        if (string.IsNullOrEmpty(text)) return defaultSize;
+        return text.Length switch
+        {
+            > 50 => min,
+            > 35 => defaultSize - 1.5,
+            _ => defaultSize
+        };
     }
 
     public new void Show()
