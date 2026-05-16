@@ -19,86 +19,114 @@
     </Window.Resources>
 
     <Border x:Name="ToastBorder"
-            Background="{StaticResource BrushSurface}"
             BorderBrush="{StaticResource BrushBorder}"
             BorderThickness="1"
             CornerRadius="8"
-            Padding="12,10"
             MinWidth="180"
             MaxWidth="300"
+            ClipToBounds="True"
             RenderTransformOrigin="0.5,0.5">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#1c2748" Offset="0"/>
+                <GradientStop Color="#111832" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+        <!-- Accent glow replaces the plain black shadow -->
         <Border.Effect>
-            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="12" ShadowDepth="2"/>
+            <DropShadowEffect Color="#1DB954" Opacity="0.45" BlurRadius="16" ShadowDepth="0"/>
         </Border.Effect>
         <Border.RenderTransform>
             <TranslateTransform x:Name="SlideTransform"/>
         </Border.RenderTransform>
 
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <!-- Main content — padding applied via Margin so the bar/shimmer can reach the edges -->
+            <Grid Margin="12,10,12,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Album art — hidden for plain text toasts -->
-            <Image x:Name="AlbumArt"
-                   Grid.Column="0"
-                   Width="80" Height="80"
-                   Stretch="UniformToFill"
-                   VerticalAlignment="Center"
-                   Visibility="Collapsed">
-                <Image.Clip>
-                    <RectangleGeometry RadiusX="5" RadiusY="5" Rect="0,0,80,80"/>
-                </Image.Clip>
-            </Image>
+                <!-- Album art — hidden for plain text toasts -->
+                <Image x:Name="AlbumArt"
+                       Grid.Column="0"
+                       Width="80" Height="80"
+                       Stretch="UniformToFill"
+                       VerticalAlignment="Center"
+                       Visibility="Collapsed">
+                    <Image.Clip>
+                        <RectangleGeometry RadiusX="5" RadiusY="5" Rect="0,0,80,80"/>
+                    </Image.Clip>
+                </Image>
 
-            <!-- Spacer — hidden for plain text toasts -->
-            <Grid x:Name="ArtGap" Grid.Column="1" Width="12" Visibility="Collapsed"/>
+                <!-- Spacer — hidden for plain text toasts -->
+                <Grid x:Name="ArtGap" Grid.Column="1" Width="12" Visibility="Collapsed"/>
 
-            <!-- Plain text (all non-rich toasts) -->
-            <TextBlock x:Name="MessageText"
-                       Grid.Column="2"
-                       Foreground="{StaticResource BrushText}"
-                       FontFamily="Segoe UI Variable"
-                       FontSize="13"
-                       TextWrapping="Wrap"
-                       LineHeight="18"
-                       VerticalAlignment="Center"/>
-
-            <!-- Rich track info (Show Current Track) — hidden until populated -->
-            <StackPanel x:Name="TrackPanel"
-                        Grid.Column="2"
-                        Visibility="Collapsed"
-                        VerticalAlignment="Center"
-                        Margin="0,2,0,2">
-
-                <!-- Track name -->
-                <TextBlock x:Name="TrackText"
+                <!-- Plain text (all non-rich toasts) -->
+                <TextBlock x:Name="MessageText"
+                           Grid.Column="2"
                            Foreground="{StaticResource BrushText}"
                            FontFamily="Segoe UI Variable"
-                           FontSize="14"
-                           FontWeight="Normal"
-                           TextTrimming="CharacterEllipsis"
-                           Margin="0,0,0,2"/>
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           LineHeight="18"
+                           VerticalAlignment="Center"/>
 
-                <!-- Artist — bold, accent-tinted -->
-                <TextBlock x:Name="ArtistText"
-                           Foreground="{StaticResource BrushAccent}"
-                           FontFamily="Segoe UI Variable"
-                           FontSize="12.5"
-                           FontWeight="Bold"
-                           TextTrimming="CharacterEllipsis"
-                           Margin="0,0,0,2"/>
+                <!-- Rich track info (Show Current Track) — hidden until populated -->
+                <StackPanel x:Name="TrackPanel"
+                            Grid.Column="2"
+                            Visibility="Collapsed"
+                            VerticalAlignment="Center"
+                            Margin="0,2,0,2">
 
-                <!-- Album — smaller, muted -->
-                <TextBlock x:Name="AlbumText"
-                           Foreground="{StaticResource BrushTextMuted}"
-                           FontFamily="Segoe UI Variable"
-                           FontSize="11.5"
-                           FontStyle="Italic"
-                           TextTrimming="CharacterEllipsis"/>
-            </StackPanel>
+                    <TextBlock x:Name="TrackText"
+                               Foreground="{StaticResource BrushText}"
+                               FontFamily="Segoe UI Variable"
+                               FontSize="14"
+                               FontWeight="Normal"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0,0,0,2"/>
+
+                    <TextBlock x:Name="ArtistText"
+                               Foreground="{StaticResource BrushAccent}"
+                               FontFamily="Segoe UI Variable"
+                               FontSize="12.5"
+                               FontWeight="Bold"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0,0,0,2"/>
+
+                    <TextBlock x:Name="AlbumText"
+                               Foreground="{StaticResource BrushTextMuted}"
+                               FontFamily="Segoe UI Variable"
+                               FontSize="11.5"
+                               FontStyle="Italic"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Shimmer sweep — fill and animation set in code-behind -->
+            <Rectangle x:Name="SweepHighlight" IsHitTestVisible="False"/>
+
+            <!-- Countdown bar — 2px, drains right-to-left over the toast duration -->
+            <Rectangle x:Name="CountdownBar"
+                       Height="2"
+                       VerticalAlignment="Bottom"
+                       IsHitTestVisible="False"
+                       RenderTransformOrigin="0,0.5">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#881DB954" Offset="0"/>
+                        <GradientStop Color="#FF1DB954" Offset="0.15"/>
+                        <GradientStop Color="#FF1DB954" Offset="0.85"/>
+                        <GradientStop Color="#FF2EE870" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+                <Rectangle.RenderTransform>
+                    <ScaleTransform x:Name="CountdownScale"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
         </Grid>
     </Border>
 </Window>
