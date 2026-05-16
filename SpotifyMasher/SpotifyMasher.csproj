@@ -28,6 +28,7 @@
     <Resource Include="Resources\icon.ico" />
     <Resource Include="Resources\fuspotify256.png" />
     <Resource Include="Resources\fuspotify.png" />
+    <Resource Include="Resources\Fonts\Lexend-VariableFont_wght.ttf" />
   </ItemGroup>
 
 </Project>

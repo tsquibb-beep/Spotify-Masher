@@ -38,7 +38,7 @@
             <TextBlock Grid.Column="0"
                        Text="🔊 Volume: 80%"
                        Foreground="{StaticResource BrushText}"
-                       FontFamily="Segoe UI Variable"
+                       FontFamily="{StaticResource FontLexend}"
                        FontSize="13"
                        VerticalAlignment="Center"
                        Margin="0,0,10,0" Height="18"/>
