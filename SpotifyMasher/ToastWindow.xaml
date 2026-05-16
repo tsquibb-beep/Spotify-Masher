@@ -106,8 +106,9 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Shimmer sweep — fill and animation set in code-behind -->
-            <Rectangle x:Name="SweepHighlight" IsHitTestVisible="False"/>
+            <!-- Shimmer sweep — Border so its background is clipped to CornerRadius naturally.
+                 Background (LinearGradientBrush) and animation set in code-behind. -->
+            <Border x:Name="SweepHighlight" CornerRadius="7" IsHitTestVisible="False"/>
 
             <!-- Countdown bar — 2px, drains right-to-left over the toast duration -->
             <Rectangle x:Name="CountdownBar"
@@ -117,10 +118,12 @@
                        RenderTransformOrigin="0,0.5">
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#881DB954" Offset="0"/>
-                        <GradientStop Color="#FF1DB954" Offset="0.15"/>
-                        <GradientStop Color="#FF1DB954" Offset="0.85"/>
-                        <GradientStop Color="#FF2EE870" Offset="1"/>
+                        <GradientStop Color="#661DB954" Offset="0"/>
+                        <GradientStop Color="#FF1DB954" Offset="0.12"/>
+                        <GradientStop Color="#FF1DB954" Offset="0.80"/>
+                        <GradientStop Color="#FF4AE87A" Offset="0.91"/>
+                        <GradientStop Color="#FFB8FFD8" Offset="0.97"/>
+                        <GradientStop Color="#FFFFFFFF" Offset="1"/>
                     </LinearGradientBrush>
                 </Rectangle.Fill>
                 <Rectangle.RenderTransform>

@@ -96,28 +96,30 @@ public partial class ToastWindow : Window
 
     private void StartFxAnimations()
     {
-        // Shimmer: a white gleam sweeps left→right over 1.5 s, starting after the fade-in.
-        // GradientStop offsets begin off the left edge and travel to off the right edge.
+        // Shimmer: a narrow diagonal gleam sweeps top-left→bottom-right over 1.5 s.
+        // Uses a Border (not Rectangle) so its background clips to the rounded corners.
+        // GradientStop offsets travel from off the top-left edge to off the bottom-right.
         var sweepDuration = TimeSpan.FromMilliseconds(1500);
         var sweepDelay    = TimeSpan.FromMilliseconds(160);
         var sweepEase     = new CubicEase { EasingMode = EasingMode.EaseInOut };
 
-        var s1 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), -0.55);
-        var s2 = new GradientStop(Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF), -0.2);
-        var s3 = new GradientStop(Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF),  0.0);
-        var s4 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF),  0.45);
+        var s1 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), -0.40);
+        var s2 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF), -0.15);
+        var s3 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF),  0.05);
+        var s4 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF),  0.28);
 
         var shimmerBrush = new LinearGradientBrush(
             new GradientStopCollection { s1, s2, s3, s4 },
-            new Point(0, 0), new Point(1, 0));
-        SweepHighlight.Fill = shimmerBrush;
+            new Point(0, 0), new Point(1, 1));  // diagonal top-left → bottom-right
+        SweepHighlight.Background = shimmerBrush;
 
-        AnimateStop(s1, -0.55, 0.55,  sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s2, -0.20, 0.90,  sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s3,  0.00, 1.10,  sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s4,  0.45, 1.55,  sweepDuration, sweepDelay, sweepEase);
+        AnimateStop(s1, -0.40, 0.72, sweepDuration, sweepDelay, sweepEase);
+        AnimateStop(s2, -0.15, 0.97, sweepDuration, sweepDelay, sweepEase);
+        AnimateStop(s3,  0.05, 1.13, sweepDuration, sweepDelay, sweepEase);
+        AnimateStop(s4,  0.28, 1.38, sweepDuration, sweepDelay, sweepEase);
 
         // Countdown bar: ScaleX 1→0 (origin at left), drains right-to-left over full duration.
+        // The gradient has a white-hot tip at offset=1 which is always at the moving right edge.
         var countdown = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(_durationMs));
         CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty, countdown);
     }
