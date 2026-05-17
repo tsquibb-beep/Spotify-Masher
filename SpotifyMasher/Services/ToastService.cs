@@ -27,7 +27,7 @@ public class ToastService(ConfigService configService)
             _current?.ForceClose();
             _current = null;
 
-            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop);
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, settings.Theme);
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.Closed += (_, _) => { if (_current == toast) _current = null; };
             _current = toast;

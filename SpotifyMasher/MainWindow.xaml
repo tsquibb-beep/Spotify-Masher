@@ -59,6 +59,7 @@
             <RowDefinition Height="Auto" />   <!-- Auth form (disconnected only) -->
             <RowDefinition Height="Auto" />   <!-- Hotkey section (collapsible) -->
             <RowDefinition Height="Auto" />   <!-- Notification settings (collapsible) -->
+            <RowDefinition Height="Auto" />   <!-- Toast Style section (collapsible) -->
             <RowDefinition Height="Auto" />   <!-- Footer -->
             <RowDefinition Height="Auto" />   <!-- Debug log (Ctrl+Shift+` to toggle) -->
         </Grid.RowDefinitions>
@@ -220,6 +221,8 @@
             <StackPanel Margin="14">
 
                     <CheckBox x:Name="NotifEnabled" Content="Enable toast notifications"
+                              Checked="NotifEnabled_Checked"
+                              Unchecked="NotifEnabled_Unchecked"
                               Margin="0,0,0,10"/>
 
                     <!-- Position mode selector -->
@@ -358,8 +361,82 @@
             </StackPanel>
         </Border>
 
+        <!-- ══ Toast Style section (collapsible) ══ -->
+        <Border x:Name="StyleSection" Grid.Row="4" Margin="0,0,0,10"
+                Background="{StaticResource BrushSurface}"
+                BorderBrush="{StaticResource BrushBorder}"
+                BorderThickness="1" CornerRadius="8"
+                Visibility="Collapsed">
+            <StackPanel Margin="14">
+
+                <!-- Background effect -->
+                <TextBlock Text="Background Effect" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="StyleBgEffect"
+                          ItemsSource="{x:Static local:MainWindow.AvailableBackgroundEffects}"
+                          SelectionChanged="StyleBgEffect_SelectionChanged"
+                          Width="160" HorizontalAlignment="Left"
+                          Margin="0,0,0,12"/>
+
+                <!-- Background colours -->
+                <TextBlock Text="Background Colors" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Color 1:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleBgColor1" Width="160"/>
+                    <TextBlock x:Name="StyleBgColor2Label" Text="Color 2:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="16,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleBgColor2" Width="160"/>
+                </StackPanel>
+
+                <!-- Glow colour -->
+                <TextBlock Text="Glow Color" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Color:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleGlowColor" Width="160"/>
+                </StackPanel>
+
+                <!-- Text colours -->
+                <TextBlock Text="Text Colors" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Message:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleMsgColor" Width="160"/>
+                    <TextBlock Text="Artist:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="16,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleArtistColor" Width="160"/>
+                    <TextBlock Text="Album:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="16,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleAlbumColor" Width="160"/>
+                </StackPanel>
+
+                <!-- Action border -->
+                <TextBlock Text="Action Border" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Type:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="StyleBorderType"
+                              ItemsSource="{x:Static local:MainWindow.AvailableActionBorderTypes}"
+                              Width="160" Margin="0,0,16,0"/>
+                    <TextBlock Text="Color:" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushTextMuted}" FontSize="12" Margin="0,0,8,0"/>
+                    <controls:ColorPickerBox x:Name="StyleBorderColor" Width="160"/>
+                </StackPanel>
+
+                <!-- Preview button -->
+                <Button Content="Preview Toast" Style="{StaticResource GhostButton}"
+                        HorizontalAlignment="Left"
+                        Click="PreviewToast_Click"/>
+            </StackPanel>
+        </Border>
+
         <!-- ══ Footer ══ -->
-        <Grid Grid.Row="4" Margin="0,0,0,6">
+        <Grid Grid.Row="5" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -391,6 +468,18 @@
                     <Button Content="Save Notifications" Style="{StaticResource PrimaryButton}"
                             Click="SaveNotifications_Click"/>
                 </StackPanel>
+                <!-- When toast style collapsed: Toast Style -->
+                <StackPanel x:Name="StyleCollapsedButton" Orientation="Horizontal" Margin="8,0,0,0">
+                    <Button x:Name="StyleToggleButton" Content="Toast Style"
+                            Style="{StaticResource GhostButton}"
+                            Click="ToggleStyle_Click"/>
+                </StackPanel>
+                <!-- When toast style expanded: Save Style -->
+                <StackPanel x:Name="StyleExpandedButton" Orientation="Horizontal"
+                            Margin="8,0,0,0" Visibility="Collapsed">
+                    <Button Content="Save Style" Style="{StaticResource PrimaryButton}"
+                            Click="SaveStyle_Click"/>
+                </StackPanel>
             </StackPanel>
 
             <Button Grid.Column="2" Content="?" Width="30" Height="30" Padding="0"
@@ -399,7 +488,7 @@
         </Grid>
 
         <!-- ══ Debug Log (Ctrl+Shift+` to toggle, or via tray menu) ══ -->
-        <Grid x:Name="DebugSection" Grid.Row="5" Visibility="Collapsed">
+        <Grid x:Name="DebugSection" Grid.Row="6" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="130" />

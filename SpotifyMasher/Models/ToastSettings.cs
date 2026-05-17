@@ -15,6 +15,8 @@ public class ToastSettings
     // Set by the drag picker — used directly instead of corner+offset when non-null
     public double? PinnedX { get; set; } = null;
     public double? PinnedY { get; set; } = null;
+
+    public ToastTheme Theme { get; set; } = new();
 }
 
 public class ProcessToastRule : INotifyPropertyChanged

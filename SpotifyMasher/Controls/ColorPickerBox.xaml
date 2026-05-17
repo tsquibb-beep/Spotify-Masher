@@ -1,0 +1,31 @@
+<UserControl x:Class="SpotifyMasher.Controls.ColorPickerBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="36"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBox x:Name="HexInput"
+                 Grid.Column="0"
+                 Text="{Binding HexValue, ElementName=Root, UpdateSourceTrigger=LostFocus}"
+                 FontFamily="{StaticResource FontLexend}"
+                 FontSize="12"
+                 VerticalContentAlignment="Center"
+                 Padding="6,4"
+                 ToolTip="Enter a hex colour (e.g. #1DB954)"/>
+
+        <Border x:Name="ColorSwatch"
+                Grid.Column="1"
+                Background="{Binding SwatchBrush, ElementName=Root}"
+                BorderBrush="{StaticResource BrushBorder}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Margin="6,0,0,0"
+                Cursor="Hand"
+                MouseLeftButtonDown="Swatch_Click"
+                ToolTip="Click to edit"/>
+    </Grid>
+</UserControl>

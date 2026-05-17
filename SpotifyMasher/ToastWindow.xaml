@@ -41,6 +41,12 @@
         </Border.RenderTransform>
 
         <Grid>
+            <!-- Grain noise overlay — sits behind content; Background set in code-behind for Grain effect -->
+            <Border x:Name="GrainOverlay"
+                    CornerRadius="7"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed"/>
+
             <!-- Main content — padding applied via Margin so the bar/shimmer can reach the edges -->
             <Grid Margin="12,10,12,10">
                 <Grid.ColumnDefinitions>
@@ -130,6 +136,27 @@
                     <ScaleTransform x:Name="CountdownScale"/>
                 </Rectangle.RenderTransform>
             </Rectangle>
+
+            <!-- Fill from centre — two halves grow outward; RenderTransformOrigin centred -->
+            <Rectangle x:Name="FillCentreRect"
+                       Height="2"
+                       VerticalAlignment="Bottom"
+                       IsHitTestVisible="False"
+                       Visibility="Collapsed"
+                       RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform x:Name="FillCentreScale" ScaleX="0"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <!-- Full border trace — StrokeDashOffset animated in code-behind -->
+            <Rectangle x:Name="BorderTraceRect"
+                       IsHitTestVisible="False"
+                       Visibility="Collapsed"
+                       Fill="Transparent"
+                       StrokeThickness="2"
+                       RadiusX="7"
+                       RadiusY="7"/>
         </Grid>
     </Border>
 </Window>

@@ -30,11 +30,28 @@ public partial class MainWindow : Window
         "top-left",
     ];
 
+    public static IReadOnlyList<string> AvailableBackgroundEffects { get; } =
+    [
+        "Gradient",
+        "Solid",
+        "Radial Glow",
+        "Grain",
+    ];
+
+    public static IReadOnlyList<string> AvailableActionBorderTypes { get; } =
+    [
+        "Bottom Bar Drain",
+        "Fill from Centre",
+        "Full Border Trace",
+        "None",
+    ];
+
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private readonly ObservableCollection<ProcessToastRule> _processRules = [];
     private bool _isAuthenticated;
     private double? _pendingPinnedX, _pendingPinnedY;
     private bool _loadingSettings;
+    private bool _loadingStyleSettings;
 
     public bool IsAuthenticated
     {
@@ -74,6 +91,8 @@ public partial class MainWindow : Window
             _bindings.Add(b);
 
         LoadNotificationSettings(config.ToastSettings);
+        LoadStyleSettings(config.ToastSettings.Theme);
+        SyncStyleButtonEnabled();
 
         AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
 
@@ -408,5 +427,126 @@ public partial class MainWindow : Window
             "bottom-left" => (area.Left + offsetX,         area.Bottom - h - offsetY),
             _             => (area.Right - w - offsetX,   area.Bottom - h - offsetY),
         };
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Toast Style section
+    // ──────────────────────────────────────────────────────────────
+
+    private void LoadStyleSettings(Models.ToastTheme t)
+    {
+        _loadingStyleSettings = true;
+
+        StyleBgEffect.SelectedItem   = AvailableBackgroundEffects.Contains(t.BackgroundEffect)
+                                       ? t.BackgroundEffect : "Gradient";
+        StyleBgColor1.HexValue       = t.BackgroundColor1;
+        StyleBgColor2.HexValue       = t.BackgroundColor2;
+        StyleGlowColor.HexValue      = t.GlowColor;
+        StyleMsgColor.HexValue       = t.MessageTextColor;
+        StyleArtistColor.HexValue    = t.ArtistTextColor;
+        StyleAlbumColor.HexValue     = t.AlbumTextColor;
+        StyleBorderType.SelectedItem = AvailableActionBorderTypes.Contains(t.ActionBorderType)
+                                       ? t.ActionBorderType : "Bottom Bar Drain";
+        StyleBorderColor.HexValue    = t.ActionBorderColor;
+
+        _loadingStyleSettings = false;
+        UpdateStyleColor2Visibility();
+    }
+
+    private void UpdateStyleColor2Visibility()
+    {
+        bool hideColor2 = StyleBgEffect.SelectedItem?.ToString() == "Solid";
+        StyleBgColor2Label.Visibility = hideColor2 ? Visibility.Collapsed : Visibility.Visible;
+        StyleBgColor2.Visibility      = hideColor2 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void ToggleStyle_Click(object sender, RoutedEventArgs e)
+    {
+        bool open = StyleSection.Visibility == Visibility.Visible;
+        StyleSection.Visibility       = open ? Visibility.Collapsed : Visibility.Visible;
+        StyleCollapsedButton.Visibility = open ? Visibility.Visible  : Visibility.Collapsed;
+        StyleExpandedButton.Visibility  = open ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void SaveStyle_Click(object sender, RoutedEventArgs e)
+    {
+        var config = App.ConfigService.Load();
+        var t = config.ToastSettings.Theme;
+
+        t.BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()   ?? "Gradient";
+        t.BackgroundColor1  = StyleBgColor1.HexValue;
+        t.BackgroundColor2  = StyleBgColor2.HexValue;
+        t.GlowColor         = StyleGlowColor.HexValue;
+        t.MessageTextColor  = StyleMsgColor.HexValue;
+        t.ArtistTextColor   = StyleArtistColor.HexValue;
+        t.AlbumTextColor    = StyleAlbumColor.HexValue;
+        t.ActionBorderType  = StyleBorderType.SelectedItem?.ToString() ?? "Bottom Bar Drain";
+        t.ActionBorderColor = StyleBorderColor.HexValue;
+
+        App.ConfigService.Save(config);
+        AppLogger.Log($"Toast style saved — effect={t.BackgroundEffect} border={t.ActionBorderType}");
+
+        ToggleStyle_Click(sender, e);
+    }
+
+    private void StyleBgEffect_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingStyleSettings) return;
+        UpdateStyleColor2Visibility();
+    }
+
+    private void PreviewToast_Click(object sender, RoutedEventArgs e)
+    {
+        var theme = new Models.ToastTheme
+        {
+            BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()   ?? "Gradient",
+            BackgroundColor1  = StyleBgColor1.HexValue,
+            BackgroundColor2  = StyleBgColor2.HexValue,
+            GlowColor         = StyleGlowColor.HexValue,
+            MessageTextColor  = StyleMsgColor.HexValue,
+            ArtistTextColor   = StyleArtistColor.HexValue,
+            AlbumTextColor    = StyleAlbumColor.HexValue,
+            ActionBorderType  = StyleBorderType.SelectedItem?.ToString() ?? "Bottom Bar Drain",
+            ActionBorderColor = StyleBorderColor.HexValue,
+        };
+
+        var config = App.ConfigService.Load();
+        var payload = new Models.ToastPayload("Preview toast notification", null,
+                                              "Track Name", "Artist Name", "Album Name");
+
+        var toast = new ToastWindow(payload, config.ToastSettings.DurationMs,
+                                    config.ToastSettings.AlwaysOnTop, theme)
+        {
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+        };
+        toast.Show();
+        AppLogger.Log("Toast style preview shown");
+    }
+
+    private void SyncStyleButtonEnabled()
+    {
+        bool enabled = NotifEnabled.IsChecked == true;
+        StyleToggleButton.IsEnabled = enabled;
+        StyleToggleButton.Opacity   = enabled ? 1.0 : 0.4;
+    }
+
+    private void NotifEnabled_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_loadingSettings) return;
+        SyncStyleButtonEnabled();
+    }
+
+    private void NotifEnabled_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_loadingSettings) return;
+        SyncStyleButtonEnabled();
+
+        // Collapse the style section if it was open
+        if (StyleSection.Visibility == Visibility.Visible)
+        {
+            StyleSection.Visibility       = Visibility.Collapsed;
+            StyleCollapsedButton.Visibility = Visibility.Visible;
+            StyleExpandedButton.Visibility  = Visibility.Collapsed;
+        }
     }
 }

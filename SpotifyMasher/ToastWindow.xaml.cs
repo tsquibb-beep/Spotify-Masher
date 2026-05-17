@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using SpotifyMasher.Models;
 
@@ -12,19 +13,23 @@ public partial class ToastWindow : Window
 {
     private readonly DispatcherTimer _dismissTimer;
     private readonly int _durationMs;
+    private readonly ToastTheme _theme;
     private bool _closing;
 
-    public ToastWindow(ToastPayload payload, int durationMs, bool alwaysOnTop)
+    public ToastWindow(ToastPayload payload, int durationMs, bool alwaysOnTop, ToastTheme? theme = null)
     {
         InitializeComponent();
         Topmost = alwaysOnTop;
         Opacity = 0;
         _durationMs = durationMs;
+        _theme = theme ?? new ToastTheme();
 
         if (payload.TrackName is not null)
             PopulateRichLayout(payload);
         else
             MessageText.Text = payload.Message;
+
+        ApplyTheme(_theme);
 
         _dismissTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
         _dismissTimer.Tick += (_, _) => { _dismissTimer.Stop(); BeginDismiss(); };
@@ -79,6 +84,114 @@ public partial class ToastWindow : Window
         };
     }
 
+    private void ApplyTheme(ToastTheme t)
+    {
+        ApplyBackground(t);
+        ApplyGlow(t);
+        ApplyTextColors(t);
+        ApplyActionBorder(t);
+    }
+
+    private void ApplyBackground(ToastTheme t)
+    {
+        Color c1 = ParseColor(t.BackgroundColor1, Color.FromRgb(0x1c, 0x27, 0x48));
+        Color c2 = ParseColor(t.BackgroundColor2, Color.FromRgb(0x11, 0x18, 0x32));
+
+        ToastBorder.Background = t.BackgroundEffect switch
+        {
+            "Solid"       => new SolidColorBrush(c1),
+            "Radial Glow" => new RadialGradientBrush(c1, c2)
+                             {
+                                 Center = new Point(0.5, 0.5),
+                                 RadiusX = 0.7,
+                                 RadiusY = 0.7,
+                                 GradientOrigin = new Point(0.5, 0.5),
+                             },
+            "Grain"       => new SolidColorBrush(c1),
+            _             => new LinearGradientBrush(c1, c2, new Point(0, 0), new Point(0, 1)),
+        };
+
+        if (t.BackgroundEffect == "Grain")
+        {
+            GrainOverlay.Background = NoiseHelper.GetNoiseBrush();
+            GrainOverlay.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void ApplyGlow(ToastTheme t)
+    {
+        if (ToastBorder.Effect is System.Windows.Media.Effects.DropShadowEffect shadow)
+            shadow.Color = ParseColor(t.GlowColor, Color.FromRgb(0x1D, 0xB9, 0x54));
+    }
+
+    private void ApplyTextColors(ToastTheme t)
+    {
+        var msg    = new SolidColorBrush(ParseColor(t.MessageTextColor, Colors.White));
+        var artist = new SolidColorBrush(ParseColor(t.ArtistTextColor,  Color.FromRgb(0x1D, 0xB9, 0x54)));
+        var album  = new SolidColorBrush(ParseColor(t.AlbumTextColor,   Color.FromRgb(0xA0, 0xA0, 0xB0)));
+
+        MessageText.Foreground = msg;
+        TrackText.Foreground   = msg;
+        ArtistText.Foreground  = artist;
+        AlbumText.Foreground   = album;
+    }
+
+    private void ApplyActionBorder(ToastTheme t)
+    {
+        CountdownBar.Visibility  = Visibility.Collapsed;
+        FillCentreRect.Visibility = Visibility.Collapsed;
+        BorderTraceRect.Visibility = Visibility.Collapsed;
+
+        Color borderColor = ParseColor(t.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
+
+        switch (t.ActionBorderType)
+        {
+            case "Bottom Bar Drain":
+                CountdownBar.Visibility = Visibility.Visible;
+                CountdownBar.Fill = BuildSparkGradient(borderColor);
+                break;
+
+            case "Fill from Centre":
+                FillCentreRect.Visibility = Visibility.Visible;
+                FillCentreRect.Fill = new SolidColorBrush(borderColor);
+                break;
+
+            case "Full Border Trace":
+                BorderTraceRect.Visibility = Visibility.Visible;
+                BorderTraceRect.Stroke = new SolidColorBrush(borderColor);
+                break;
+                // perimeter + dash array set in StartFxAnimations once layout is ready
+        }
+    }
+
+    // Rebuilds the countdown-bar gradient using a custom base colour, keeping the white spark tip.
+    private static LinearGradientBrush BuildSparkGradient(Color c)
+    {
+        return new LinearGradientBrush(
+            new GradientStopCollection
+            {
+                new(Color.FromArgb(0x66, c.R, c.G, c.B), 0),
+                new(Color.FromArgb(0xFF, c.R, c.G, c.B), 0.12),
+                new(Color.FromArgb(0xFF, c.R, c.G, c.B), 0.80),
+                new(LightenColor(c, 0.30), 0.91),
+                new(LightenColor(c, 0.70), 0.97),
+                new(Colors.White, 1.0),
+            },
+            new Point(0, 0), new Point(1, 0));
+    }
+
+    private static Color LightenColor(Color c, double factor) =>
+        Color.FromArgb(0xFF,
+            (byte)(c.R + (255 - c.R) * factor),
+            (byte)(c.G + (255 - c.G) * factor),
+            (byte)(c.B + (255 - c.B) * factor));
+
+    private static Color ParseColor(string hex, Color fallback)
+    {
+        try { return (Color)ColorConverter.ConvertFromString(hex)!; }
+        catch { return fallback; }
+    }
+
     public new void Show()
     {
         base.Show();
@@ -98,7 +211,6 @@ public partial class ToastWindow : Window
     {
         // Shimmer: a narrow diagonal gleam sweeps top-left→bottom-right over 1.5 s.
         // Uses a Border (not Rectangle) so its background clips to the rounded corners.
-        // GradientStop offsets travel from off the top-left edge to off the bottom-right.
         var sweepDuration = TimeSpan.FromMilliseconds(1500);
         var sweepDelay    = TimeSpan.FromMilliseconds(160);
         var sweepEase     = new CubicEase { EasingMode = EasingMode.EaseInOut };
@@ -110,7 +222,7 @@ public partial class ToastWindow : Window
 
         var shimmerBrush = new LinearGradientBrush(
             new GradientStopCollection { s1, s2, s3, s4 },
-            new Point(0, 0), new Point(1, 1));  // diagonal top-left → bottom-right
+            new Point(0, 0), new Point(1, 1));
         SweepHighlight.Background = shimmerBrush;
 
         AnimateStop(s1, -0.40, 0.72, sweepDuration, sweepDelay, sweepEase);
@@ -118,10 +230,29 @@ public partial class ToastWindow : Window
         AnimateStop(s3,  0.05, 1.13, sweepDuration, sweepDelay, sweepEase);
         AnimateStop(s4,  0.28, 1.38, sweepDuration, sweepDelay, sweepEase);
 
-        // Countdown bar: ScaleX 1→0 (origin at left), drains right-to-left over full duration.
-        // The gradient has a white-hot tip at offset=1 which is always at the moving right edge.
-        var countdown = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(_durationMs));
-        CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty, countdown);
+        // Action border animations
+        var duration = TimeSpan.FromMilliseconds(_durationMs);
+
+        switch (_theme.ActionBorderType)
+        {
+            case "Bottom Bar Drain":
+                CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(1.0, 0.0, duration));
+                break;
+
+            case "Fill from Centre":
+                FillCentreScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(0.0, 1.0, duration));
+                break;
+
+            case "Full Border Trace":
+                double perimeter = 2 * (ToastBorder.ActualWidth + ToastBorder.ActualHeight);
+                if (perimeter < 1) perimeter = 760; // fallback if layout not yet measured
+                BorderTraceRect.StrokeDashArray = [perimeter];
+                BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
+                    new DoubleAnimation(perimeter, 0, duration));
+                break;
+        }
     }
 
     private static void AnimateStop(GradientStop stop, double from, double to,
