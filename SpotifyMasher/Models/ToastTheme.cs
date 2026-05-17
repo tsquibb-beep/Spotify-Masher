@@ -13,4 +13,6 @@ public class ToastTheme
     // Bottom Bar Drain | Fill from Centre | Full Border Trace | None
     public string ActionBorderType  { get; set; } = "Bottom Bar Drain";
     public string ActionBorderColor { get; set; } = "#1DB954";
+    // Diagonal | Horizontal | Pulse | None
+    public string ShimmerEffect     { get; set; } = "Diagonal";
 }

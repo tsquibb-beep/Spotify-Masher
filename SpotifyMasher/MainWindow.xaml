@@ -369,8 +369,8 @@
                 Visibility="Collapsed">
             <StackPanel Margin="14">
 
-                <!-- Background effect -->
-                <TextBlock Text="Background Effect" FontSize="11" FontWeight="SemiBold"
+                <!-- Background style (texture) -->
+                <TextBlock Text="Background Style" FontSize="11" FontWeight="SemiBold"
                            Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                 <ComboBox x:Name="StyleBgEffect"
                           ItemsSource="{x:Static local:MainWindow.AvailableBackgroundEffects}"
@@ -428,10 +428,21 @@
                     <controls:ColorPickerBox x:Name="StyleBorderColor" Width="160"/>
                 </StackPanel>
 
-                <!-- Preview button -->
-                <Button Content="Preview Toast" Style="{StaticResource GhostButton}"
-                        HorizontalAlignment="Left"
-                        Click="PreviewToast_Click"/>
+                <!-- Shimmer effect -->
+                <TextBlock Text="Shimmer Effect" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="StyleShimmerEffect"
+                          ItemsSource="{x:Static local:MainWindow.AvailableShimmerEffects}"
+                          Width="160" HorizontalAlignment="Left"
+                          Margin="0,0,0,16"/>
+
+                <!-- Preview / Reset buttons -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Preview Toast" Style="{StaticResource GhostButton}"
+                            Click="PreviewToast_Click" Margin="0,0,8,0"/>
+                    <Button Content="Reset to Defaults" Style="{StaticResource GhostButton}"
+                            Click="ResetStyle_Click"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 

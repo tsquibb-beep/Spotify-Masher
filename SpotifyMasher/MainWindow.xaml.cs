@@ -46,6 +46,14 @@ public partial class MainWindow : Window
         "None",
     ];
 
+    public static IReadOnlyList<string> AvailableShimmerEffects { get; } =
+    [
+        "Diagonal",
+        "Horizontal",
+        "Pulse",
+        "None",
+    ];
+
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private readonly ObservableCollection<ProcessToastRule> _processRules = [];
     private bool _isAuthenticated;
@@ -448,6 +456,8 @@ public partial class MainWindow : Window
         StyleBorderType.SelectedItem = AvailableActionBorderTypes.Contains(t.ActionBorderType)
                                        ? t.ActionBorderType : "Bottom Bar Drain";
         StyleBorderColor.HexValue    = t.ActionBorderColor;
+        StyleShimmerEffect.SelectedItem = AvailableShimmerEffects.Contains(t.ShimmerEffect)
+                                          ? t.ShimmerEffect : "Diagonal";
 
         _loadingStyleSettings = false;
         UpdateStyleColor2Visibility();
@@ -482,6 +492,7 @@ public partial class MainWindow : Window
         t.AlbumTextColor    = StyleAlbumColor.HexValue;
         t.ActionBorderType  = StyleBorderType.SelectedItem?.ToString() ?? "Bottom Bar Drain";
         t.ActionBorderColor = StyleBorderColor.HexValue;
+        t.ShimmerEffect     = StyleShimmerEffect.SelectedItem?.ToString() ?? "Diagonal";
 
         App.ConfigService.Save(config);
         AppLogger.Log($"Toast style saved — effect={t.BackgroundEffect} border={t.ActionBorderType}");
@@ -499,15 +510,16 @@ public partial class MainWindow : Window
     {
         var theme = new Models.ToastTheme
         {
-            BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()   ?? "Gradient",
+            BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()        ?? "Gradient",
             BackgroundColor1  = StyleBgColor1.HexValue,
             BackgroundColor2  = StyleBgColor2.HexValue,
             GlowColor         = StyleGlowColor.HexValue,
             MessageTextColor  = StyleMsgColor.HexValue,
             ArtistTextColor   = StyleArtistColor.HexValue,
             AlbumTextColor    = StyleAlbumColor.HexValue,
-            ActionBorderType  = StyleBorderType.SelectedItem?.ToString() ?? "Bottom Bar Drain",
+            ActionBorderType  = StyleBorderType.SelectedItem?.ToString()      ?? "Bottom Bar Drain",
             ActionBorderColor = StyleBorderColor.HexValue,
+            ShimmerEffect     = StyleShimmerEffect.SelectedItem?.ToString()   ?? "Diagonal",
         };
 
         var config = App.ConfigService.Load();
@@ -528,6 +540,12 @@ public partial class MainWindow : Window
         bool enabled = NotifEnabled.IsChecked == true;
         StyleToggleButton.IsEnabled = enabled;
         StyleToggleButton.Opacity   = enabled ? 1.0 : 0.4;
+    }
+
+    private void ResetStyle_Click(object sender, RoutedEventArgs e)
+    {
+        LoadStyleSettings(new Models.ToastTheme());
+        AppLogger.Log("Toast style reset to defaults");
     }
 
     private void NotifEnabled_Checked(object sender, RoutedEventArgs e)

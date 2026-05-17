@@ -209,28 +209,70 @@ public partial class ToastWindow : Window
 
     private void StartFxAnimations()
     {
-        // Shimmer: a narrow diagonal gleam sweeps top-left→bottom-right over 1.5 s.
-        // Uses a Border (not Rectangle) so its background clips to the rounded corners.
-        var sweepDuration = TimeSpan.FromMilliseconds(1500);
-        var sweepDelay    = TimeSpan.FromMilliseconds(160);
-        var sweepEase     = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        StartShimmer();
+        StartActionBorderAnimation();
+    }
 
+    private void StartShimmer()
+    {
+        var duration = TimeSpan.FromMilliseconds(1500);
+        var delay    = TimeSpan.FromMilliseconds(160);
+        var ease     = new CubicEase { EasingMode = EasingMode.EaseInOut };
+
+        switch (_theme.ShimmerEffect)
+        {
+            case "Diagonal":
+                RunSweepShimmer(new Point(0, 0), new Point(1, 1), duration, delay, ease);
+                break;
+            case "Horizontal":
+                RunSweepShimmer(new Point(0, 0.5), new Point(1, 0.5), duration, delay, ease);
+                break;
+            case "Pulse":
+                RunPulseShimmer(duration);
+                break;
+            default: // "None"
+                SweepHighlight.Visibility = Visibility.Collapsed;
+                break;
+        }
+    }
+
+    private void RunSweepShimmer(Point start, Point end, TimeSpan duration, TimeSpan delay, IEasingFunction ease)
+    {
         var s1 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), -0.40);
         var s2 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF), -0.15);
         var s3 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF),  0.05);
         var s4 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF),  0.28);
 
-        var shimmerBrush = new LinearGradientBrush(
-            new GradientStopCollection { s1, s2, s3, s4 },
-            new Point(0, 0), new Point(1, 1));
-        SweepHighlight.Background = shimmerBrush;
+        SweepHighlight.Background = new LinearGradientBrush(
+            new GradientStopCollection { s1, s2, s3, s4 }, start, end);
 
-        AnimateStop(s1, -0.40, 0.72, sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s2, -0.15, 0.97, sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s3,  0.05, 1.13, sweepDuration, sweepDelay, sweepEase);
-        AnimateStop(s4,  0.28, 1.38, sweepDuration, sweepDelay, sweepEase);
+        AnimateStop(s1, -0.40, 0.72, duration, delay, ease);
+        AnimateStop(s2, -0.15, 0.97, duration, delay, ease);
+        AnimateStop(s3,  0.05, 1.13, duration, delay, ease);
+        AnimateStop(s4,  0.28, 1.38, duration, delay, ease);
+    }
 
-        // Action border animations
+    private void RunPulseShimmer(TimeSpan duration)
+    {
+        SweepHighlight.Background = new SolidColorBrush(Colors.White);
+        SweepHighlight.Opacity = 0;
+
+        var pulse = new DoubleAnimationUsingKeyFrames
+        {
+            BeginTime = TimeSpan.FromMilliseconds(100),
+            Duration  = new Duration(duration),
+        };
+        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(0.0)));
+        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.08, KeyTime.FromPercent(0.35),
+            new SineEase { EasingMode = EasingMode.EaseOut }));
+        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(0.75),
+            new SineEase { EasingMode = EasingMode.EaseIn }));
+        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(1.0)));
+        SweepHighlight.BeginAnimation(OpacityProperty, pulse);
+    }
+
+    private void StartActionBorderAnimation()
+    {
         var duration = TimeSpan.FromMilliseconds(_durationMs);
 
         switch (_theme.ActionBorderType)
@@ -247,7 +289,7 @@ public partial class ToastWindow : Window
 
             case "Full Border Trace":
                 double perimeter = 2 * (ToastBorder.ActualWidth + ToastBorder.ActualHeight);
-                if (perimeter < 1) perimeter = 760; // fallback if layout not yet measured
+                if (perimeter < 1) perimeter = 760;
                 BorderTraceRect.StrokeDashArray = [perimeter];
                 BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
                     new DoubleAnimation(perimeter, 0, duration));
