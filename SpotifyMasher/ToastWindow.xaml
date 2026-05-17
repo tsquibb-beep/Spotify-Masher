@@ -149,7 +149,7 @@
                 </Rectangle.RenderTransform>
             </Rectangle>
 
-            <!-- Full border trace — StrokeDashOffset animated in code-behind -->
+            <!-- Full border trace / orbiting spark — StrokeDashOffset animated in code-behind -->
             <Rectangle x:Name="BorderTraceRect"
                        IsHitTestVisible="False"
                        Visibility="Collapsed"
@@ -157,6 +157,13 @@
                        StrokeThickness="2"
                        RadiusX="7"
                        RadiusY="7"/>
+
+            <!-- Bouncing Edge action border — GradientStop offsets animated in code-behind -->
+            <Rectangle x:Name="TopEdgeRect"
+                       Height="3"
+                       VerticalAlignment="Top"
+                       IsHitTestVisible="False"
+                       Visibility="Collapsed"/>
         </Grid>
     </Border>
 </Window>

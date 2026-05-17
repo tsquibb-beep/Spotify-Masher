@@ -1,5 +1,7 @@
 namespace SpotifyMasher.Models;
 
+// Future: add a PresetName property (string) here. LoadStyleSettings(ToastTheme) in MainWindow
+// already serves as the natural "apply preset" entry point.
 public class ToastTheme
 {
     // Gradient | Solid | Radial Glow | Grain

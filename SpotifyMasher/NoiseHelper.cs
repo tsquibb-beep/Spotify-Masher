@@ -35,10 +35,10 @@ internal static class NoiseHelper
 
         return new ImageBrush(bmp)
         {
-            TileMode    = TileMode.Tile,
-            Viewport    = new Rect(0, 0, 1, 1),
-            ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
-            Opacity     = 0.05,
+            TileMode      = TileMode.Tile,
+            Viewport      = new Rect(0, 0, 64, 64),
+            ViewportUnits = BrushMappingMode.Absolute,
+            Opacity       = 0.05,
         };
     }
 }

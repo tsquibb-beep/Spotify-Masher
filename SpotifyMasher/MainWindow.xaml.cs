@@ -43,6 +43,8 @@ public partial class MainWindow : Window
         "Bottom Bar Drain",
         "Fill from Centre",
         "Full Border Trace",
+        "Orbiting Spark",
+        "Bouncing Edge",
         "None",
     ];
 
@@ -51,6 +53,10 @@ public partial class MainWindow : Window
         "Diagonal",
         "Horizontal",
         "Pulse",
+        "Static Gloss",
+        "Slide-Through",
+        "Spotlight",
+        "Breathing",
         "None",
     ];
 

@@ -21,6 +21,9 @@ create-icon.py
 HANDOVER.md
 CLAUDE.md
 
+# Design examples / inspiration (local only)
+Examples/
+
 # OS
 .DS_Store
 Thumbs.db

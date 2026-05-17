@@ -138,9 +138,10 @@ public partial class ToastWindow : Window
 
     private void ApplyActionBorder(ToastTheme t)
     {
-        CountdownBar.Visibility  = Visibility.Collapsed;
-        FillCentreRect.Visibility = Visibility.Collapsed;
+        CountdownBar.Visibility    = Visibility.Collapsed;
+        FillCentreRect.Visibility  = Visibility.Collapsed;
         BorderTraceRect.Visibility = Visibility.Collapsed;
+        TopEdgeRect.Visibility     = Visibility.Collapsed;
 
         Color borderColor = ParseColor(t.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
 
@@ -159,8 +160,19 @@ public partial class ToastWindow : Window
             case "Full Border Trace":
                 BorderTraceRect.Visibility = Visibility.Visible;
                 BorderTraceRect.Stroke = new SolidColorBrush(borderColor);
-                break;
                 // perimeter + dash array set in StartFxAnimations once layout is ready
+                break;
+
+            case "Orbiting Spark":
+                BorderTraceRect.Visibility = Visibility.Visible;
+                BorderTraceRect.Stroke = new SolidColorBrush(borderColor);
+                // dash array + animation set in StartFxAnimations once layout is ready
+                break;
+
+            case "Bouncing Edge":
+                TopEdgeRect.Visibility = Visibility.Visible;
+                // fill + animation set in StartFxAnimations once layout is ready
+                break;
         }
     }
 
@@ -224,24 +236,86 @@ public partial class ToastWindow : Window
             case "Diagonal":
                 RunSweepShimmer(new Point(0, 0), new Point(1, 1), duration, delay, ease);
                 break;
+
             case "Horizontal":
                 RunSweepShimmer(new Point(0, 0.5), new Point(1, 0.5), duration, delay, ease);
                 break;
+
             case "Pulse":
                 RunPulseShimmer(duration);
                 break;
+
+            case "Static Gloss":
+                SweepHighlight.Visibility = Visibility.Visible;
+                SweepHighlight.Background = new LinearGradientBrush(
+                    new GradientStopCollection
+                    {
+                        new(Colors.Transparent,                         0.00),
+                        new(Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF),    0.45),
+                        new(Color.FromArgb(0x12, 0xFF, 0xFF, 0xFF),    0.55),
+                        new(Colors.Transparent,                         1.00),
+                    },
+                    new Point(0, 0), new Point(1, 1));
+                break;
+
+            case "Slide-Through":
+                RunSweepShimmer(new Point(0, 0.5), new Point(1, 0.5),
+                    TimeSpan.FromMilliseconds(700), TimeSpan.FromMilliseconds(400),
+                    new QuinticEase { EasingMode = EasingMode.EaseIn },
+                    peakAlpha: 0x5A);
+                break;
+
+            case "Spotlight":
+                var radial = new RadialGradientBrush
+                {
+                    Center         = new Point(-0.2, 0.5),
+                    GradientOrigin = new Point(-0.2, 0.5),
+                    RadiusX = 0.5,
+                    RadiusY = 0.8,
+                    GradientStops = new GradientStopCollection
+                    {
+                        new(Color.FromArgb(0x3C, 0xFF, 0xFF, 0xFF), 0.0),
+                        new(Colors.Transparent,                       1.0),
+                    }
+                };
+                SweepHighlight.Visibility = Visibility.Visible;
+                SweepHighlight.Background = radial;
+                var ptAnim = new PointAnimation(
+                    new Point(-0.2, 0.5), new Point(1.2, 0.5),
+                    TimeSpan.FromSeconds(3))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(300)
+                };
+                radial.BeginAnimation(RadialGradientBrush.CenterProperty, ptAnim);
+                radial.BeginAnimation(RadialGradientBrush.GradientOriginProperty,
+                    ptAnim.Clone() as PointAnimation);
+                break;
+
+            case "Breathing":
+                if (ToastBorder.Background is LinearGradientBrush lgb && lgb.GradientStops.Count >= 2)
+                {
+                    AnimateStop(lgb.GradientStops[0], 0.0, 0.3,
+                        TimeSpan.FromSeconds(3), TimeSpan.Zero,
+                        new SineEase(), autoReverse: true);
+                    AnimateStop(lgb.GradientStops[^1], 1.0, 0.7,
+                        TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(150),
+                        new SineEase(), autoReverse: true);
+                }
+                break;
+
             default: // "None"
                 SweepHighlight.Visibility = Visibility.Collapsed;
                 break;
         }
     }
 
-    private void RunSweepShimmer(Point start, Point end, TimeSpan duration, TimeSpan delay, IEasingFunction ease)
+    private void RunSweepShimmer(Point start, Point end, TimeSpan duration, TimeSpan delay,
+        IEasingFunction ease, byte peakAlpha = 0x18)
     {
-        var s1 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), -0.40);
-        var s2 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF), -0.15);
-        var s3 = new GradientStop(Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF),  0.05);
-        var s4 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF),  0.28);
+        var s1 = new GradientStop(Color.FromArgb(0x00,       0xFF, 0xFF, 0xFF), -0.40);
+        var s2 = new GradientStop(Color.FromArgb(peakAlpha,  0xFF, 0xFF, 0xFF), -0.15);
+        var s3 = new GradientStop(Color.FromArgb(peakAlpha,  0xFF, 0xFF, 0xFF),  0.05);
+        var s4 = new GradientStop(Color.FromArgb(0x00,       0xFF, 0xFF, 0xFF),  0.28);
 
         SweepHighlight.Background = new LinearGradientBrush(
             new GradientStopCollection { s1, s2, s3, s4 }, start, end);
@@ -288,22 +362,65 @@ public partial class ToastWindow : Window
                 break;
 
             case "Full Border Trace":
+            {
                 double perimeter = 2 * (ToastBorder.ActualWidth + ToastBorder.ActualHeight);
                 if (perimeter < 1) perimeter = 760;
-                BorderTraceRect.StrokeDashArray = [perimeter];
+                BorderTraceRect.StrokeDashArray = new DoubleCollection([perimeter]);
                 BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
                     new DoubleAnimation(perimeter, 0, duration));
                 break;
+            }
+
+            case "Orbiting Spark":
+            {
+                double perimeter = 2 * (ToastBorder.ActualWidth + ToastBorder.ActualHeight);
+                if (perimeter < 1) perimeter = 760;
+                double sparkLen = Math.Min(50, perimeter * 0.12);
+                BorderTraceRect.StrokeThickness = 2;
+                BorderTraceRect.StrokeDashArray = new DoubleCollection([sparkLen, perimeter - sparkLen]);
+                BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
+                    new DoubleAnimation(perimeter, 0, TimeSpan.FromSeconds(2.5))
+                    {
+                        RepeatBehavior = RepeatBehavior.Forever
+                    });
+                break;
+            }
+
+            case "Bouncing Edge":
+            {
+                Color bc = ParseColor(_theme.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
+                const double half = 0.3;
+                var bounceBrush = new LinearGradientBrush(
+                    new GradientStopCollection
+                    {
+                        new(Colors.Transparent, 0.0),
+                        new(bc,                 0.45),
+                        new(bc,                 0.55),
+                        new(Colors.Transparent, 1.0),
+                    },
+                    new Point(0, 0), new Point(1, 0));
+                TopEdgeRect.Fill = bounceBrush;
+
+                var bounceDur = TimeSpan.FromSeconds(1.4);
+                var bounceEase = new SineEase();
+                AnimateStop(bounceBrush.GradientStops[0], -half * 2,       1.0,            bounceDur, TimeSpan.Zero, bounceEase, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[1], 0.0 - half,      1.0 + 0,        bounceDur, TimeSpan.Zero, bounceEase, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[2], 0.0 + half,      1.0 + half,     bounceDur, TimeSpan.Zero, bounceEase, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[3], 0.0 + half * 2,  1.0 + half * 2, bounceDur, TimeSpan.Zero, bounceEase, autoReverse: true);
+                break;
+            }
         }
     }
 
     private static void AnimateStop(GradientStop stop, double from, double to,
-        TimeSpan duration, TimeSpan delay, IEasingFunction ease)
+        TimeSpan duration, TimeSpan delay, IEasingFunction? ease, bool autoReverse = false)
     {
         stop.BeginAnimation(GradientStop.OffsetProperty, new DoubleAnimation(from, to, duration)
         {
-            BeginTime = delay,
-            EasingFunction = ease
+            BeginTime      = delay,
+            EasingFunction = ease,
+            AutoReverse    = autoReverse,
+            RepeatBehavior = autoReverse ? RepeatBehavior.Forever : default,
         });
     }
 
