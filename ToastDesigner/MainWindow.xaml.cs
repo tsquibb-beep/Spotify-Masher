@@ -163,27 +163,39 @@ public partial class MainWindow : Window
 
     private void BgEffectCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (!IsLoaded) return;
         RefreshBgImageRowVisibility();
         OnThemeChanged();
     }
 
     private void Combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        => OnThemeChanged();
+    {
+        if (!IsLoaded) return;
+        OnThemeChanged();
+    }
 
     private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
+        if (!IsLoaded) return;
         RefreshSliderValueLabels();
         OnThemeChanged();
     }
 
     private void TextBox_Changed(object sender, TextChangedEventArgs e)
-        => OnThemeChanged();
+    {
+        if (!IsLoaded) return;
+        OnThemeChanged();
+    }
 
     private void SampleData_Changed(object sender, TextChangedEventArgs e)
-        => UpdatePreview();
+    {
+        if (!IsLoaded) return;
+        UpdatePreview();
+    }
 
     private void GlowCheck_Changed(object sender, RoutedEventArgs e)
     {
+        if (!IsLoaded) return;
         RefreshGlowControlsEnabled();
         OnThemeChanged();
     }

@@ -340,6 +340,7 @@
                 <ControlTemplate TargetType="Expander">
                     <StackPanel>
                         <ToggleButton x:Name="Hdr"
+                                      Content="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
                                       IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                       Focusable="False">
                             <ToggleButton.Template>
