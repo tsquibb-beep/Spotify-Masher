@@ -597,18 +597,8 @@ public partial class MainWindow : Window
 
     private void PreviewToast_Click(object sender, RoutedEventArgs e)
     {
-        var theme = BuildActiveTheme();
-
-        var config = App.ConfigService.Load();
-        var payload = new Models.ToastPayload("Preview toast notification", null,
-                                              "Track Name", "Artist Name", "Album Name");
-
-        var toast = new ToastWindow(payload, config.ToastSettings.DurationMs,
-                                    config.ToastSettings.AlwaysOnTop, theme)
-        {
-            WindowStartupLocation = WindowStartupLocation.CenterScreen,
-        };
-        toast.Show();
+        // Shown at the user's configured position, with the app logo as stand-in album art.
+        App.ToastService.ShowPreview(BuildActiveTheme());
         AppLogger.Log("Toast style preview shown");
     }
 
@@ -621,7 +611,7 @@ public partial class MainWindow : Window
 
     private void ResetStyle_Click(object sender, RoutedEventArgs e)
     {
-        LoadStyleSettings(new Models.ToastTheme());
+        LoadStyleSettings(Models.ToastPresets.Get(Models.ToastPresets.DefaultName));
         AppLogger.Log("Toast style reset to defaults");
     }
 

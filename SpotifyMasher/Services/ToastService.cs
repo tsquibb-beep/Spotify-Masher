@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using SpotifyMasher.Models;
@@ -33,6 +34,42 @@ public class ToastService(ConfigService configService)
             _current = toast;
             toast.Show();
         });
+    }
+
+    // Shows a one-off preview of the given theme at the user's configured position, using the
+    // app logo as stand-in album art. Ignores the Enabled flag (the user explicitly asked for it).
+    public void ShowPreview(ToastTheme theme)
+    {
+        var settings = configService.Load().ToastSettings;
+        var (corner, offsetX, offsetY, pinnedX, pinnedY) = ResolvePosition(settings);
+
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            _current?.ForceClose();
+            _current = null;
+
+            var payload = new ToastPayload("Preview toast notification", LoadLogoBytes(),
+                                           "Track Name", "Artist Name", "Album Name");
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, theme);
+            PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
+            toast.Closed += (_, _) => { if (_current == toast) _current = null; };
+            _current = toast;
+            toast.Show();
+        });
+    }
+
+    private static byte[]? LoadLogoBytes()
+    {
+        try
+        {
+            var sri = Application.GetResourceStream(
+                new Uri("pack://application:,,,/Resources/fuspotify256.png"));
+            if (sri is null) return null;
+            using var ms = new MemoryStream();
+            sri.Stream.CopyTo(ms);
+            return ms.ToArray();
+        }
+        catch { return null; }
     }
 
     private static (string corner, int offsetX, int offsetY, double? pinnedX, double? pinnedY)

@@ -16,7 +16,7 @@ public class ToastSettings
     public double? PinnedX { get; set; } = null;
     public double? PinnedY { get; set; } = null;
 
-    public ToastTheme Theme { get; set; } = new();
+    public ToastTheme Theme { get; set; } = ToastPresets.Get(ToastPresets.DefaultName);
 }
 
 public class ProcessToastRule : INotifyPropertyChanged

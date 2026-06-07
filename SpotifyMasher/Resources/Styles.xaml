@@ -256,6 +256,8 @@
     </Style>
 
     <!-- Ghost button (secondary) -->
+    <!-- Ghost button — outlined accent button. Animated Aurora Masher gradient border on hover
+         (border only, no glow). One of the app's two button styles (the other is PrimaryButton). -->
     <Style x:Key="GhostButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource BrushAccent}" />
@@ -269,17 +271,51 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- Aurora animated border overlay — fades in on hover, sits over Root's border -->
+                        <Border x:Name="Aurora"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                IsHitTestVisible="False"
+                                Opacity="0">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" SpreadMethod="Repeat">
+                                    <GradientStop Color="#FFE14D" Offset="0.0"/>
+                                    <GradientStop Color="#A3DC6F" Offset="0.25"/>
+                                    <GradientStop Color="#3BB20A" Offset="0.5"/>
+                                    <GradientStop Color="#00EA8D" Offset="0.75"/>
+                                    <GradientStop Color="#FFE14D" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Root" Property="Background" Value="#1A1DB954" />
+                            <Setter TargetName="Aurora" Property="Opacity" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="AuroraSb">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <PointAnimation Storyboard.TargetName="Aurora"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(LinearGradientBrush.StartPoint)"
+                                                        From="0,0" To="1,1" Duration="0:0:5" />
+                                        <PointAnimation Storyboard.TargetName="Aurora"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(LinearGradientBrush.EndPoint)"
+                                                        From="1,1" To="2,2" Duration="0:0:5" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="AuroraSb" />
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Root" Property="Opacity" Value="0.4" />

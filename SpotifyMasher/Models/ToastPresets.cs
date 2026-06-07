@@ -1,7 +1,7 @@
 namespace SpotifyMasher.Models;
 
 // Curated toast designs. Each preset is a fully-populated ToastTheme.
-// "Custom" is the sentinel used when the user has hand-edited the manual controls.
+// "Aurora Custom" is the sentinel used when the user has hand-edited the custom colour pickers.
 //
 // The Aurora family all share the "Aurora Glow" look (gradient border + blurred halo +
 // drifting curtain shards) and differ only by colour scheme:
@@ -14,12 +14,15 @@ public static class ToastPresets
 {
     public const string CustomName = "Aurora Custom";
 
-    // Order here = order in the dropdown.
+    // The app default — used for fresh configs and "Reset to Defaults".
+    public const string DefaultName = "Aurora Masher";
+
+    // Order here = order in the dropdown. (Spotify Classic is intentionally omitted — hidden
+    // pending a future rework — but its factory is kept so old configs still resolve.)
     public static IReadOnlyList<string> Names { get; } =
     [
-        "Spotify Classic",
-        "Aurora Default",
-        "Aurora Jungle",
+        "Aurora Masher",
+        "Aurora ADHD",
         "Aurora Twilight",
         "Aurora Lagoon",
         "Aurora Ember",
@@ -28,16 +31,17 @@ public static class ToastPresets
 
     public static ToastTheme Get(string name) => name switch
     {
-        "Spotify Classic" => SpotifyClassic(),
-        "Aurora Default"  => AuroraDefault(),
-        "Aurora Jungle"   => AuroraJungle(),
+        "Aurora Masher"   => AuroraMasher(),
+        "Aurora ADHD"     => AuroraAdhd(),
         "Aurora Twilight" => AuroraTwilight(),
         "Aurora Lagoon"   => AuroraLagoon(),
         "Aurora Ember"    => AuroraEmber(),
         "Aurora Frost"    => AuroraFrost(),
-        _                 => AuroraDefault(),
+        "Spotify Classic" => SpotifyClassic(),   // hidden, kept for back-compat
+        _                 => AuroraMasher(),
     };
 
+    // Hidden pending a rework/rename — not in Names, but resolvable for old configs.
     private static ToastTheme SpotifyClassic() => new()
     {
         PresetName        = "Spotify Classic",
@@ -74,17 +78,17 @@ public static class ToastPresets
         AuroraCurtainColors  = curtains,
     };
 
-    // The original — gold / magenta / blue / cyan on near-black.
-    private static ToastTheme AuroraDefault() => AuroraBase(
-        "Aurora Default", background: "#14141A", artist: "#95F3D9",
-        gradient: ["#FFB224", "#E34BA9", "#0072F5", "#95F3D9"],
-        curtains: ["#3B82F6", "#A5B4FC", "#93C5FD", "#DDD6FE", "#60A5FA"]);
-
-    // Greens with yellow — "Green Aurora Borealis" scheme.
-    private static ToastTheme AuroraJungle() => AuroraBase(
-        "Aurora Jungle", background: "#0A140A", artist: "#A3DC6F",
+    // The app default — greens with yellow ("Green Aurora Borealis" scheme).
+    private static ToastTheme AuroraMasher() => AuroraBase(
+        "Aurora Masher", background: "#0A140A", artist: "#A3DC6F",
         gradient: ["#FFE14D", "#A3DC6F", "#3BB20A", "#00EA8D"],
         curtains: ["#B3FD00", "#62A83B", "#00EA8D", "#A3DC6F"]);
+
+    // High-energy multi-colour — gold / magenta / blue / cyan on near-black (the original).
+    private static ToastTheme AuroraAdhd() => AuroraBase(
+        "Aurora ADHD", background: "#14141A", artist: "#95F3D9",
+        gradient: ["#FFB224", "#E34BA9", "#0072F5", "#95F3D9"],
+        curtains: ["#3B82F6", "#A5B4FC", "#93C5FD", "#DDD6FE", "#60A5FA"]);
 
     // Purples, deep blues and pinks — "Beautiful Aurora Borealis" scheme.
     private static ToastTheme AuroraTwilight() => AuroraBase(

@@ -5,7 +5,7 @@ namespace SpotifyMasher.Models;
 // in MainWindow is the "apply preset" entry point.
 public class ToastTheme
 {
-    public string PresetName { get; set; } = "Spotify Classic";
+    public string PresetName { get; set; } = "Aurora Masher";
 
     // Gradient | Solid | Radial Glow | Grain
     public string BackgroundEffect  { get; set; } = "Gradient";
