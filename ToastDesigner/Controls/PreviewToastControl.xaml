@@ -5,17 +5,12 @@
              VerticalAlignment="Center">
 
     <Border x:Name="ToastBorder"
+            Background="Transparent"
             BorderThickness="1.5"
             CornerRadius="10"
             MinWidth="280"
             MaxWidth="520"
             ClipToBounds="True">
-        <Border.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#1c2748" Offset="0"/>
-                <GradientStop Color="#111832" Offset="1"/>
-            </LinearGradientBrush>
-        </Border.Background>
         <Border.Effect>
             <DropShadowEffect x:Name="GlowEffect"
                               Color="#1DB954"
@@ -24,14 +19,17 @@
                               ShadowDepth="0"/>
         </Border.Effect>
 
-        <Grid>
-            <!-- Grain noise overlay -->
+        <Grid x:Name="ToastRoot">
+
+            <!-- ── Background layer (can be hidden by layer toggle) ── -->
+            <Border x:Name="BgLayer"/>
+
+            <!-- Grain overlay (part of bg layer; hidden/shown with it) -->
             <Border x:Name="GrainOverlay"
-                    CornerRadius="9"
                     IsHitTestVisible="False"
                     Visibility="Collapsed"/>
 
-            <!-- Main content -->
+            <!-- ── Content layer ── -->
             <Grid x:Name="ContentGrid" Margin="12,10,12,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -39,7 +37,6 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Album art thumbnail -->
                 <Image x:Name="AlbumArt"
                        Grid.Column="0"
                        Width="80" Height="80"
@@ -51,10 +48,8 @@
                     </Image.Clip>
                 </Image>
 
-                <!-- Art gap -->
                 <Grid x:Name="ArtGap" Grid.Column="1" Width="12" Visibility="Collapsed"/>
 
-                <!-- Rich track info (always shown in preview) -->
                 <StackPanel x:Name="TrackPanel"
                             Grid.Column="2"
                             VerticalAlignment="Center"
@@ -82,59 +77,76 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Shimmer sweep overlay -->
-            <Border x:Name="SweepHighlight"
-                    CornerRadius="9"
-                    IsHitTestVisible="False"/>
+            <!-- ── Shimmer canvas (shape-based, clipped to toast) ── -->
+            <Canvas x:Name="ShimmerCanvas" IsHitTestVisible="False" ClipToBounds="True">
+                <!-- ShimmerContainer is positioned and sized in code-behind -->
+                <Grid x:Name="ShimmerContainer">
+                    <Path x:Name="ShimmerShapePath"
+                          Stretch="Fill"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform x:Name="ShimmerRotTx"/>
+                        </Path.RenderTransform>
+                    </Path>
+                </Grid>
+            </Canvas>
 
-            <!-- Bottom bar drain -->
-            <Rectangle x:Name="CountdownBar"
-                       Height="2"
-                       VerticalAlignment="Bottom"
-                       IsHitTestVisible="False"
-                       Visibility="Collapsed"
-                       RenderTransformOrigin="0,0.5">
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#661DB954" Offset="0"/>
-                        <GradientStop Color="#FF1DB954" Offset="0.12"/>
-                        <GradientStop Color="#FF1DB954" Offset="0.80"/>
-                        <GradientStop Color="#FF4AE87A" Offset="0.91"/>
-                        <GradientStop Color="#FFB8FFD8" Offset="0.97"/>
-                        <GradientStop Color="#FFFFFFFF" Offset="1"/>
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-                <Rectangle.RenderTransform>
-                    <ScaleTransform x:Name="CountdownScale"/>
-                </Rectangle.RenderTransform>
-            </Rectangle>
+            <!-- ── Border / action indicators (can be hidden by layer toggle) ── -->
+            <Grid x:Name="BorderLayer">
 
-            <!-- Fill from centre -->
-            <Rectangle x:Name="FillCentreRect"
-                       Height="2"
-                       VerticalAlignment="Bottom"
-                       IsHitTestVisible="False"
-                       Visibility="Collapsed"
-                       RenderTransformOrigin="0.5,0.5">
-                <Rectangle.RenderTransform>
-                    <ScaleTransform x:Name="FillCentreScale" ScaleX="0"/>
-                </Rectangle.RenderTransform>
-            </Rectangle>
+                <!-- Bottom bar drain -->
+                <Rectangle x:Name="CountdownBar"
+                           Height="2"
+                           VerticalAlignment="Bottom"
+                           IsHitTestVisible="False"
+                           Visibility="Collapsed"
+                           RenderTransformOrigin="0,0.5">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#661DB954" Offset="0"/>
+                            <GradientStop Color="#FF1DB954" Offset="0.12"/>
+                            <GradientStop Color="#FF1DB954" Offset="0.80"/>
+                            <GradientStop Color="#FF4AE87A" Offset="0.91"/>
+                            <GradientStop Color="#FFB8FFD8" Offset="0.97"/>
+                            <GradientStop Color="#FFFFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform x:Name="CountdownScale"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
 
-            <!-- Full border trace / orbiting spark -->
-            <Rectangle x:Name="BorderTraceRect"
-                       IsHitTestVisible="False"
-                       Visibility="Collapsed"
-                       Fill="Transparent"
-                       StrokeThickness="2"
-                       RadiusX="9" RadiusY="9"/>
+                <!-- Fill from centre -->
+                <Rectangle x:Name="FillCentreRect"
+                           Height="2"
+                           VerticalAlignment="Bottom"
+                           IsHitTestVisible="False"
+                           Visibility="Collapsed"
+                           RenderTransformOrigin="0.5,0.5">
+                    <Rectangle.RenderTransform>
+                        <ScaleTransform x:Name="FillCentreScale" ScaleX="0"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
 
-            <!-- Bouncing edge -->
-            <Rectangle x:Name="TopEdgeRect"
-                       Height="3"
-                       VerticalAlignment="Top"
-                       IsHitTestVisible="False"
-                       Visibility="Collapsed"/>
+                <!-- Full border trace / orbiting spark -->
+                <Rectangle x:Name="BorderTraceRect"
+                           IsHitTestVisible="False"
+                           Visibility="Collapsed"
+                           Fill="Transparent"
+                           StrokeThickness="2"
+                           RadiusX="9" RadiusY="9"/>
+
+                <!-- Bouncing edge -->
+                <Rectangle x:Name="TopEdgeRect"
+                           Height="3"
+                           VerticalAlignment="Top"
+                           IsHitTestVisible="False"
+                           Visibility="Collapsed"/>
+
+            </Grid>
+
         </Grid>
     </Border>
 </UserControl>

@@ -6,39 +6,31 @@ namespace ToastDesigner;
 
 internal static class NoiseHelper
 {
-    private static ImageBrush? _cached;
-
-    internal static ImageBrush GetNoiseBrush()
+    internal static ImageBrush GetNoiseBrush(double scale, Color tint, double intensity)
     {
-        _cached ??= Generate();
-        return _cached;
-    }
-
-    private static ImageBrush Generate()
-    {
-        const int size = 64;
-        var bmp    = new WriteableBitmap(size, size, 96, 96, PixelFormats.Bgra32, null);
-        var pixels = new byte[size * size * 4];
+        int sz = Math.Max(16, Math.Min(512, (int)scale));
+        var bmp    = new WriteableBitmap(sz, sz, 96, 96, PixelFormats.Bgra32, null);
+        var pixels = new byte[sz * sz * 4];
         var rng    = new Random(42);
 
         for (int i = 0; i < pixels.Length; i += 4)
         {
             byte v        = (byte)rng.Next(256);
-            pixels[i]     = v;
-            pixels[i + 1] = v;
-            pixels[i + 2] = v;
-            pixels[i + 3] = 0xFF;
+            pixels[i]     = (byte)(tint.B * v / 255);  // B
+            pixels[i + 1] = (byte)(tint.G * v / 255);  // G
+            pixels[i + 2] = (byte)(tint.R * v / 255);  // R
+            pixels[i + 3] = v;                          // alpha = noise density
         }
 
-        bmp.WritePixels(new Int32Rect(0, 0, size, size), pixels, size * 4, 0);
+        bmp.WritePixels(new Int32Rect(0, 0, sz, sz), pixels, sz * 4, 0);
         bmp.Freeze();
 
         return new ImageBrush(bmp)
         {
             TileMode      = TileMode.Tile,
-            Viewport      = new Rect(0, 0, 64, 64),
+            Viewport      = new Rect(0, 0, sz, sz),
             ViewportUnits = BrushMappingMode.Absolute,
-            Opacity       = 0.05,
+            Opacity       = intensity,
         };
     }
 }

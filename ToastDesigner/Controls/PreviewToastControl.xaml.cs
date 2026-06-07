@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
@@ -11,8 +14,16 @@ namespace ToastDesigner.Controls;
 
 public partial class PreviewToastControl : System.Windows.Controls.UserControl
 {
-    private DesignerTheme _theme = new();
+    private DesignerTheme _theme     = new();
     private bool          _animating;
+    private bool          _grainActive;
+    private Brush         _appliedBorderBrush = Brushes.Transparent;
+
+    // Layer visibility state
+    private bool _showBackground = true;
+    private bool _showBorder     = true;
+    private bool _showText       = true;
+    private bool _showShimmer    = true;
 
     public PreviewToastControl() => InitializeComponent();
 
@@ -47,13 +58,13 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
             {
                 var bmp = new BitmapImage();
                 bmp.BeginInit();
-                bmp.StreamSource  = new MemoryStream(artBytes);
-                bmp.CacheOption   = BitmapCacheOption.OnLoad;
+                bmp.StreamSource = new MemoryStream(artBytes);
+                bmp.CacheOption  = BitmapCacheOption.OnLoad;
                 bmp.EndInit();
                 bmp.Freeze();
-                AlbumArt.Source       = bmp;
-                AlbumArt.Visibility   = Visibility.Visible;
-                ArtGap.Visibility     = Visibility.Visible;
+                AlbumArt.Source     = bmp;
+                AlbumArt.Visibility = Visibility.Visible;
+                ArtGap.Visibility   = Visibility.Visible;
             }
             catch { SetNoArt(); }
         }
@@ -74,40 +85,43 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
     {
         _animating = false;
 
-        SweepHighlight.BeginAnimation(OpacityProperty, null);
-        CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        // Stop shimmer movement
+        ShimmerContainer.BeginAnimation(Canvas.LeftProperty, null);
+        ShimmerContainer.BeginAnimation(Canvas.TopProperty,  null);
+
+        // Stop action border animations
+        CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty,  null);
         FillCentreScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
         BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty, null);
 
-        if (ToastBorder.Background is LinearGradientBrush lgb)
-        {
-            foreach (var stop in lgb.GradientStops)
-                stop.BeginAnimation(GradientStop.OffsetProperty, null);
-        }
-
-        // Clear any looping shimmer brush animations on SweepHighlight
-        if (SweepHighlight.Background is LinearGradientBrush shb)
-        {
-            foreach (var stop in shb.GradientStops)
-                stop.BeginAnimation(GradientStop.OffsetProperty, null);
-        }
-
         if (TopEdgeRect.Fill is LinearGradientBrush teb)
-        {
             foreach (var stop in teb.GradientStops)
                 stop.BeginAnimation(GradientStop.OffsetProperty, null);
-        }
+    }
+
+    public void SetLayerVisibility(bool background, bool border, bool text, bool shimmer)
+    {
+        _showBackground = background;
+        _showBorder     = border;
+        _showText       = text;
+        _showShimmer    = shimmer;
+
+        BgLayer.Visibility      = background ? Visibility.Visible : Visibility.Collapsed;
+        GrainOverlay.Visibility = background && _grainActive ? Visibility.Visible : Visibility.Collapsed;
+
+        ToastBorder.BorderBrush = border ? _appliedBorderBrush : Brushes.Transparent;
+        BorderLayer.Visibility  = border ? Visibility.Visible : Visibility.Collapsed;
+
+        ContentGrid.Visibility  = text    ? Visibility.Visible : Visibility.Collapsed;
+        ShimmerCanvas.Visibility = shimmer ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Visual structure ────────────────────────────────────────────────────────
 
     private void ApplyStructure(DesignerTheme t)
     {
-        // Border geometry
         var cr = new CornerRadius(t.CornerRadius);
         ToastBorder.CornerRadius  = cr;
-        GrainOverlay.CornerRadius = new CornerRadius(Math.Max(0, t.CornerRadius - 1));
-        SweepHighlight.CornerRadius = new CornerRadius(Math.Max(0, t.CornerRadius - 1));
         ToastBorder.BorderThickness = new Thickness(t.BorderThickness);
         ToastBorder.Opacity       = t.BackgroundOpacity;
 
@@ -115,27 +129,25 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
         BorderTraceRect.RadiusX = traceR;
         BorderTraceRect.RadiusY = traceR;
 
-        // Border colour and opacity
         var borderColor = ParseColor(t.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
-        ToastBorder.BorderBrush  = new SolidColorBrush(borderColor) { Opacity = t.BorderOpacity };
+        _appliedBorderBrush = new SolidColorBrush(borderColor) { Opacity = t.BorderOpacity };
+        ToastBorder.BorderBrush = _showBorder ? _appliedBorderBrush : Brushes.Transparent;
 
-        // Glow (DropShadowEffect)
         if (ToastBorder.Effect is DropShadowEffect shadow)
         {
-            shadow.Color     = ParseColor(t.BorderGlowEnabled ? t.BorderGlowColor : "#000000",
-                                          Color.FromRgb(0x1D, 0xB9, 0x54));
+            shadow.Color      = ParseColor(t.BorderGlowEnabled ? t.BorderGlowColor : "#000000",
+                                           Color.FromRgb(0x1D, 0xB9, 0x54));
             shadow.BlurRadius = t.BorderGlowEnabled ? t.GlowIntensity : 0;
             shadow.Opacity    = t.BorderGlowEnabled ? 0.55 : 0;
         }
 
-        // Background
         ApplyBackground(t);
-
-        // Text colours and styling
         ApplyTextStyles(t);
-
-        // Action border visibility
         ApplyActionBorder(t);
+        SetupShimmerAppearance(t);
+
+        // Sync layer visibility flags
+        SetLayerVisibility(_showBackground, _showBorder, _showText, _showShimmer);
     }
 
     private void ApplyBackground(DesignerTheme t)
@@ -143,29 +155,24 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
         Color c1 = ParseColor(t.BackgroundColor1, Color.FromRgb(0x1c, 0x27, 0x48));
         Color c2 = ParseColor(t.BackgroundColor2, Color.FromRgb(0x11, 0x18, 0x32));
 
+        _grainActive = false;
         GrainOverlay.Visibility = Visibility.Collapsed;
 
         switch (t.BackgroundEffect)
         {
             case "Solid":
-                ToastBorder.Background = new SolidColorBrush(c1);
-                break;
-
-            case "Radial Glow":
-                ToastBorder.Background = new RadialGradientBrush(c1, c2)
-                {
-                    Center         = new Point(0.5, 0.5),
-                    RadiusX        = 0.7,
-                    RadiusY        = 0.7,
-                    GradientOrigin = new Point(0.5, 0.5),
-                };
+                BgLayer.Background = new SolidColorBrush(c1) { Opacity = t.EffectOpacity };
                 break;
 
             case "Grain":
-                ToastBorder.Background  = new SolidColorBrush(c1);
-                GrainOverlay.Background = NoiseHelper.GetNoiseBrush();
-                GrainOverlay.Visibility = Visibility.Visible;
+            {
+                BgLayer.Background = new SolidColorBrush(c1);
+                Color tint = ParseColor(t.GrainTintColor, Colors.White);
+                GrainOverlay.Background = NoiseHelper.GetNoiseBrush(t.GrainScale, tint, t.GrainIntensity * t.EffectOpacity);
+                _grainActive = true;
+                GrainOverlay.Visibility = _showBackground ? Visibility.Visible : Visibility.Collapsed;
                 break;
+            }
 
             case "Image":
                 if (!string.IsNullOrWhiteSpace(t.BackgroundImagePath) && File.Exists(t.BackgroundImagePath))
@@ -173,25 +180,69 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
                     try
                     {
                         var bmp = new BitmapImage(new Uri(t.BackgroundImagePath));
-                        ToastBorder.Background = new ImageBrush(bmp)
+                        BgLayer.Background = new ImageBrush(bmp)
                         {
                             Stretch   = Stretch.UniformToFill,
                             TileMode  = TileMode.None,
+                            Opacity   = t.EffectOpacity,
                         };
                     }
-                    catch { ToastBorder.Background = new SolidColorBrush(c1); }
+                    catch { BgLayer.Background = new SolidColorBrush(c1); }
                 }
                 else
                 {
-                    // Checkerboard placeholder when no image is set
-                    ToastBorder.Background = BuildCheckerBrush();
+                    BgLayer.Background = BuildCheckerBrush();
                 }
                 break;
 
             default: // Gradient
-                ToastBorder.Background = new LinearGradientBrush(c1, c2, new Point(0, 0), new Point(0, 1));
+                BgLayer.Background = BuildGradient(c1, c2, t) ;
                 break;
         }
+    }
+
+    private static Brush BuildGradient(Color c1, Color c2, DesignerTheme t)
+    {
+        if (t.GradientIsRadial)
+        {
+            return new RadialGradientBrush
+            {
+                Center         = new Point(t.RadialCenterX, t.RadialCenterY),
+                GradientOrigin = new Point(t.RadialCenterX, t.RadialCenterY),
+                RadiusX        = t.RadialRadiusX,
+                RadiusY        = t.RadialRadiusY,
+                GradientStops  = BuildSharpStops(c1, c2, t.GradientSharpness),
+                Opacity        = t.EffectOpacity,
+            };
+        }
+
+        // Linear gradient with angle
+        double rad  = t.GradientAngle * Math.PI / 180;
+        double dx   = Math.Cos(rad);
+        double dy   = Math.Sin(rad);
+        var startPt = new Point(0.5 - dx * 0.5, 0.5 - dy * 0.5);
+        var endPt   = new Point(0.5 + dx * 0.5, 0.5 + dy * 0.5);
+
+        return new LinearGradientBrush
+        {
+            StartPoint    = startPt,
+            EndPoint      = endPt,
+            GradientStops = BuildSharpStops(c1, c2, t.GradientSharpness),
+            Opacity       = t.EffectOpacity,
+        };
+    }
+
+    private static GradientStopCollection BuildSharpStops(Color c1, Color c2, double sharpness)
+    {
+        // sharpness 0 = soft gradient; 1 = near-hard line at centre
+        double edge = sharpness * 0.499;
+        return new GradientStopCollection
+        {
+            new(c1, 0.0),
+            new(c1, edge),
+            new(c2, 1.0 - edge),
+            new(c2, 1.0),
+        };
     }
 
     private static ImageBrush BuildCheckerBrush()
@@ -200,15 +251,13 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
         var bmp    = new WriteableBitmap(sz * 2, sz * 2, 96, 96, PixelFormats.Bgra32, null);
         var pixels = new byte[sz * 2 * sz * 2 * 4];
         for (int y = 0; y < sz * 2; y++)
+        for (int x = 0; x < sz * 2; x++)
         {
-            for (int x = 0; x < sz * 2; x++)
-            {
-                bool light = (x / sz + y / sz) % 2 == 0;
-                int  i     = (y * sz * 2 + x) * 4;
-                byte v     = light ? (byte)0x44 : (byte)0x22;
-                pixels[i] = pixels[i + 1] = pixels[i + 2] = v;
-                pixels[i + 3] = 0xFF;
-            }
+            bool light = (x / sz + y / sz) % 2 == 0;
+            int  i     = (y * sz * 2 + x) * 4;
+            byte v     = light ? (byte)0x44 : (byte)0x22;
+            pixels[i] = pixels[i + 1] = pixels[i + 2] = v;
+            pixels[i + 3] = 0xFF;
         }
         bmp.WritePixels(new Int32Rect(0, 0, sz * 2, sz * 2), pixels, sz * 2 * 4, 0);
         bmp.Freeze();
@@ -222,9 +271,12 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
 
     private void ApplyTextStyles(DesignerTheme t)
     {
-        TrackText.Foreground  = new SolidColorBrush(ParseColor(t.MessageTextColor, Colors.White))  { Opacity = t.TrackTextOpacity };
-        ArtistText.Foreground = new SolidColorBrush(ParseColor(t.ArtistTextColor, Color.FromRgb(0x1D, 0xB9, 0x54))) { Opacity = t.ArtistTextOpacity };
-        AlbumText.Foreground  = new SolidColorBrush(ParseColor(t.AlbumTextColor,  Color.FromRgb(0xA0, 0xA0, 0xB0))) { Opacity = t.AlbumTextOpacity };
+        TrackText.Foreground  = new SolidColorBrush(ParseColor(t.MessageTextColor, Colors.White))
+                                    { Opacity = t.TrackTextOpacity };
+        ArtistText.Foreground = new SolidColorBrush(ParseColor(t.ArtistTextColor,  Color.FromRgb(0x1D, 0xB9, 0x54)))
+                                    { Opacity = t.ArtistTextOpacity };
+        AlbumText.Foreground  = new SolidColorBrush(ParseColor(t.AlbumTextColor,   Color.FromRgb(0xA0, 0xA0, 0xB0)))
+                                    { Opacity = t.AlbumTextOpacity };
 
         TrackText.FontSize  = t.TrackFontSize;
         ArtistText.FontSize = t.ArtistFontSize;
@@ -257,14 +309,14 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
                 break;
 
             case "Full Border Trace":
-                BorderTraceRect.Visibility     = Visibility.Visible;
-                BorderTraceRect.Stroke         = new SolidColorBrush(bc);
+                BorderTraceRect.Visibility      = Visibility.Visible;
+                BorderTraceRect.Stroke          = new SolidColorBrush(bc);
                 BorderTraceRect.StrokeThickness = t.BorderThickness + 0.5;
                 break;
 
             case "Orbiting Spark":
-                BorderTraceRect.Visibility     = Visibility.Visible;
-                BorderTraceRect.Stroke         = new SolidColorBrush(bc);
+                BorderTraceRect.Visibility      = Visibility.Visible;
+                BorderTraceRect.Stroke          = new SolidColorBrush(bc);
                 BorderTraceRect.StrokeThickness = t.BorderThickness + 0.5;
                 break;
 
@@ -274,132 +326,109 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
         }
     }
 
+    // ── Shimmer appearance (static setup) ──────────────────────────────────────
+
+    private void SetupShimmerAppearance(DesignerTheme t)
+    {
+        Color sc    = ParseColor(t.ShimmerColor, Colors.White);
+        byte  alpha = (byte)Math.Round((1.0 - t.ShimmerTransparency) * 255);
+        var   fill  = new SolidColorBrush(Color.FromArgb(alpha, sc.R, sc.G, sc.B));
+        ShimmerShapePath.Fill = fill;
+
+        ShimmerShapePath.Data = BuildShapeGeometry(t.ShimmerShape);
+        ShimmerRotTx.Angle    = t.ShimmerRotation;
+
+        if (t.ShimmerBlur > 0.5)
+            ShimmerContainer.Effect = new BlurEffect { Radius = t.ShimmerBlur };
+        else
+            ShimmerContainer.Effect = null;
+    }
+
     // ── Animations ──────────────────────────────────────────────────────────────
 
     private void StartShimmer()
     {
-        // All shimmers loop in the designer so the effect is always visible
-        var duration = TimeSpan.FromMilliseconds(1500);
-        var delay    = TimeSpan.FromMilliseconds(100);
-        var ease     = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        double cw = ShimmerCanvas.ActualWidth  > 0 ? ShimmerCanvas.ActualWidth  : 400;
+        double ch = ShimmerCanvas.ActualHeight > 0 ? ShimmerCanvas.ActualHeight : 100;
 
-        SweepHighlight.Visibility = Visibility.Visible;
+        double sw = cw * _theme.ShimmerWidthFraction;
+        double sh = ch * _theme.ShimmerHeightFraction;
 
-        switch (_theme.ShimmerEffect)
+        ShimmerContainer.Width  = sw;
+        ShimmerContainer.Height = sh;
+
+        double centreX = (cw - sw) / 2;
+        double centreY = (ch - sh) / 2;
+        double speed   = Math.Max(0.1, _theme.ShimmerSpeed);
+        var    dur     = TimeSpan.FromSeconds(speed);
+
+        // Stop any prior movement
+        ShimmerContainer.BeginAnimation(Canvas.LeftProperty, null);
+        ShimmerContainer.BeginAnimation(Canvas.TopProperty,  null);
+
+        switch (_theme.ShimmerDirectionPreset)
         {
-            case "Diagonal":
-                RunSweepShimmer(new Point(0, 0), new Point(1, 1), duration, delay, ease);
+            case "Left to Right":
+                Canvas.SetLeft(ShimmerContainer, -sw);
+                Canvas.SetTop(ShimmerContainer,  centreY);
+                ShimmerContainer.BeginAnimation(Canvas.LeftProperty,
+                    new DoubleAnimation(-sw, cw, dur) { RepeatBehavior = RepeatBehavior.Forever });
                 break;
 
-            case "Horizontal":
-                RunSweepShimmer(new Point(0, 0.5), new Point(1, 0.5), duration, delay, ease);
+            case "Right to Left":
+                Canvas.SetLeft(ShimmerContainer, cw);
+                Canvas.SetTop(ShimmerContainer,  centreY);
+                ShimmerContainer.BeginAnimation(Canvas.LeftProperty,
+                    new DoubleAnimation(cw, -sw, dur) { RepeatBehavior = RepeatBehavior.Forever });
                 break;
 
-            case "Pulse":
-                RunPulseShimmer(TimeSpan.FromMilliseconds(1800));
+            case "Top to Bottom":
+                Canvas.SetLeft(ShimmerContainer, centreX);
+                Canvas.SetTop(ShimmerContainer,  -sh);
+                ShimmerContainer.BeginAnimation(Canvas.TopProperty,
+                    new DoubleAnimation(-sh, ch, dur) { RepeatBehavior = RepeatBehavior.Forever });
                 break;
 
-            case "Static Gloss":
-                SweepHighlight.Background = new LinearGradientBrush(
-                    new GradientStopCollection
-                    {
-                        new(Colors.Transparent,                      0.00),
-                        new(Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF), 0.45),
-                        new(Color.FromArgb(0x12, 0xFF, 0xFF, 0xFF), 0.55),
-                        new(Colors.Transparent,                      1.00),
-                    },
-                    new Point(0, 0), new Point(1, 1));
+            case "Bottom to Top":
+                Canvas.SetLeft(ShimmerContainer, centreX);
+                Canvas.SetTop(ShimmerContainer,  ch);
+                ShimmerContainer.BeginAnimation(Canvas.TopProperty,
+                    new DoubleAnimation(ch, -sh, dur) { RepeatBehavior = RepeatBehavior.Forever });
                 break;
 
-            case "Slide-Through":
-                RunSweepShimmer(new Point(0, 0.5), new Point(1, 0.5),
-                    TimeSpan.FromMilliseconds(700), TimeSpan.FromMilliseconds(200),
-                    new QuinticEase { EasingMode = EasingMode.EaseIn },
-                    peakAlpha: 0x5A);
+            case "Static":
+                Canvas.SetLeft(ShimmerContainer, centreX);
+                Canvas.SetTop(ShimmerContainer,  centreY);
                 break;
 
-            case "Spotlight":
+            case "Custom":
             {
-                var radial = new RadialGradientBrush
-                {
-                    Center         = new Point(-0.2, 0.5),
-                    GradientOrigin = new Point(-0.2, 0.5),
-                    RadiusX = 0.5, RadiusY = 0.8,
-                    GradientStops = new GradientStopCollection
-                    {
-                        new(Color.FromArgb(0x3C, 0xFF, 0xFF, 0xFF), 0.0),
-                        new(Colors.Transparent,                       1.0),
-                    }
-                };
-                SweepHighlight.Background = radial;
-                var ptAnim = new PointAnimation(new Point(-0.2, 0.5), new Point(1.2, 0.5),
-                    TimeSpan.FromSeconds(3))
-                {
-                    BeginTime       = TimeSpan.FromMilliseconds(200),
-                    RepeatBehavior  = RepeatBehavior.Forever,
-                };
-                radial.BeginAnimation(RadialGradientBrush.CenterProperty,         ptAnim);
-                radial.BeginAnimation(RadialGradientBrush.GradientOriginProperty,  ptAnim.Clone());
+                double rad  = _theme.ShimmerDirectionAngle * Math.PI / 180;
+                double dx   = Math.Cos(rad);
+                double dy   = Math.Sin(rad);
+                double dist = Math.Sqrt(cw * cw + ch * ch) + Math.Max(sw, sh);
+
+                Canvas.SetLeft(ShimmerContainer, centreX - dx * dist);
+                Canvas.SetTop(ShimmerContainer,  centreY - dy * dist);
+
+                ShimmerContainer.BeginAnimation(Canvas.LeftProperty,
+                    new DoubleAnimation(centreX - dx * dist, centreX + dx * dist, dur)
+                        { RepeatBehavior = RepeatBehavior.Forever });
+                ShimmerContainer.BeginAnimation(Canvas.TopProperty,
+                    new DoubleAnimation(centreY - dy * dist, centreY + dy * dist, dur)
+                        { RepeatBehavior = RepeatBehavior.Forever });
                 break;
             }
 
-            case "Breathing":
-                if (ToastBorder.Background is LinearGradientBrush lgb && lgb.GradientStops.Count >= 2)
-                {
-                    AnimateStop(lgb.GradientStops[0],  0.0, 0.3, TimeSpan.FromSeconds(3), TimeSpan.Zero,                      new SineEase(), autoReverse: true);
-                    AnimateStop(lgb.GradientStops[^1], 1.0, 0.7, TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(150), new SineEase(), autoReverse: true);
-                }
-                SweepHighlight.Visibility = Visibility.Collapsed;
-                break;
-
-            default: // None
-                SweepHighlight.Visibility  = Visibility.Collapsed;
-                SweepHighlight.Background  = null;
+            default:
+                Canvas.SetLeft(ShimmerContainer, centreX);
+                Canvas.SetTop(ShimmerContainer,  centreY);
                 break;
         }
     }
 
-    private void RunSweepShimmer(Point start, Point end, TimeSpan duration, TimeSpan delay,
-        IEasingFunction ease, byte peakAlpha = 0x18)
-    {
-        var s1 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), -0.40);
-        var s2 = new GradientStop(Color.FromArgb(peakAlpha, 0xFF, 0xFF, 0xFF), -0.15);
-        var s3 = new GradientStop(Color.FromArgb(peakAlpha, 0xFF, 0xFF, 0xFF),  0.05);
-        var s4 = new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF),  0.28);
-
-        SweepHighlight.Background = new LinearGradientBrush(
-            new GradientStopCollection { s1, s2, s3, s4 }, start, end);
-
-        AnimateStop(s1, -0.40, 0.72, duration, delay, ease, repeat: true);
-        AnimateStop(s2, -0.15, 0.97, duration, delay, ease, repeat: true);
-        AnimateStop(s3,  0.05, 1.13, duration, delay, ease, repeat: true);
-        AnimateStop(s4,  0.28, 1.38, duration, delay, ease, repeat: true);
-    }
-
-    private void RunPulseShimmer(TimeSpan duration)
-    {
-        SweepHighlight.Background = new SolidColorBrush(Colors.White);
-        SweepHighlight.Opacity    = 0;
-
-        var pulse = new DoubleAnimationUsingKeyFrames
-        {
-            BeginTime      = TimeSpan.FromMilliseconds(100),
-            Duration       = new Duration(duration),
-            RepeatBehavior = RepeatBehavior.Forever,
-        };
-        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(0.0)));
-        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.08, KeyTime.FromPercent(0.35),
-            new SineEase { EasingMode = EasingMode.EaseOut }));
-        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(0.75),
-            new SineEase { EasingMode = EasingMode.EaseIn }));
-        pulse.KeyFrames.Add(new EasingDoubleKeyFrame(0.0,  KeyTime.FromPercent(1.0)));
-        SweepHighlight.BeginAnimation(OpacityProperty, pulse);
-    }
-
     private void StartActionBorderAnimation()
     {
-        // All animations loop in the designer — use AutoReverse+Forever for fill/drain types,
-        // and RepeatBehavior.Forever for trace/spark types (already loop-native).
         const double cycleMs = 3500.0;
         var cycleDur = TimeSpan.FromMilliseconds(cycleMs);
 
@@ -425,10 +454,7 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
 
             case "Full Border Trace":
             {
-                // Use an estimated perimeter (updated after layout if possible)
-                double perimeter = ActualWidth > 0
-                    ? 2 * (ActualWidth + ActualHeight)
-                    : 760;
+                double perimeter = ActualWidth > 0 ? 2 * (ActualWidth + ActualHeight) : 760;
                 BorderTraceRect.StrokeDashArray = new DoubleCollection([perimeter]);
                 BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
                     new DoubleAnimation(perimeter, 0, cycleDur)
@@ -441,10 +467,8 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
 
             case "Orbiting Spark":
             {
-                double perimeter = ActualWidth > 0
-                    ? 2 * (ActualWidth + ActualHeight)
-                    : 760;
-                double sparkLen = Math.Min(50, perimeter * 0.12);
+                double perimeter = ActualWidth > 0 ? 2 * (ActualWidth + ActualHeight) : 760;
+                double sparkLen  = Math.Min(50, perimeter * 0.12);
                 BorderTraceRect.StrokeDashArray = new DoubleCollection([sparkLen, perimeter - sparkLen]);
                 BorderTraceRect.BeginAnimation(Shape.StrokeDashOffsetProperty,
                     new DoubleAnimation(perimeter, 0, TimeSpan.FromSeconds(2.5))
@@ -456,8 +480,8 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
 
             case "Bouncing Edge":
             {
-                Color bc    = ParseColor(_theme.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
-                const double half = 0.3;
+                Color bc        = ParseColor(_theme.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
+                const double h  = 0.3;
                 var bounceBrush = new LinearGradientBrush(
                     new GradientStopCollection
                     {
@@ -471,27 +495,60 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
 
                 var ease = new SineEase();
                 var dur  = TimeSpan.FromSeconds(1.4);
-                AnimateStop(bounceBrush.GradientStops[0], -half * 2,      1.0,            dur, TimeSpan.Zero, ease, autoReverse: true);
-                AnimateStop(bounceBrush.GradientStops[1], 0.0 - half,     1.0,            dur, TimeSpan.Zero, ease, autoReverse: true);
-                AnimateStop(bounceBrush.GradientStops[2], 0.0 + half,     1.0 + half,     dur, TimeSpan.Zero, ease, autoReverse: true);
-                AnimateStop(bounceBrush.GradientStops[3], 0.0 + half * 2, 1.0 + half * 2, dur, TimeSpan.Zero, ease, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[0], -h * 2,      1.0,        dur, TimeSpan.Zero, ease, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[1], 0.0 - h,     1.0,        dur, TimeSpan.Zero, ease, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[2], 0.0 + h,     1.0 + h,    dur, TimeSpan.Zero, ease, autoReverse: true);
+                AnimateStop(bounceBrush.GradientStops[3], 0.0 + h * 2, 1.0 + h * 2, dur, TimeSpan.Zero, ease, autoReverse: true);
                 break;
             }
         }
     }
 
+    // ── Shape geometry ──────────────────────────────────────────────────────────
+
+    private static Geometry BuildShapeGeometry(string shape) => shape switch
+    {
+        "Circle"   => new EllipseGeometry(new Point(50, 50), 50, 50),
+        "Triangle" => BuildTriangle(),
+        "Star"     => BuildStar(),
+        _          => new RectangleGeometry(new Rect(0, 0, 100, 100)),
+    };
+
+    private static PathGeometry BuildTriangle()
+    {
+        var fig = new PathFigure(new Point(50, 0),
+        [
+            new LineSegment(new Point(100, 100), true),
+            new LineSegment(new Point(0,   100), true),
+        ], closed: true);
+        return new PathGeometry([fig]);
+    }
+
+    private static PathGeometry BuildStar()
+    {
+        var pts = new List<Point>();
+        for (int i = 0; i < 10; i++)
+        {
+            double angle = (i * 36 - 90) * Math.PI / 180;
+            double r     = i % 2 == 0 ? 50 : 20;
+            pts.Add(new Point(50 + r * Math.Cos(angle), 50 + r * Math.Sin(angle)));
+        }
+        var fig = new PathFigure(pts[0],
+            pts.Skip(1).Select(p => (PathSegment)new LineSegment(p, true)), closed: true);
+        return new PathGeometry([fig]);
+    }
+
     // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static void AnimateStop(GradientStop stop, double from, double to,
-        TimeSpan duration, TimeSpan delay, IEasingFunction? ease,
-        bool autoReverse = false, bool repeat = false)
+        TimeSpan duration, TimeSpan delay, IEasingFunction? ease, bool autoReverse = false)
     {
         stop.BeginAnimation(GradientStop.OffsetProperty, new DoubleAnimation(from, to, duration)
         {
             BeginTime      = delay,
             EasingFunction = ease,
             AutoReverse    = autoReverse,
-            RepeatBehavior = (autoReverse || repeat) ? RepeatBehavior.Forever : default,
+            RepeatBehavior = autoReverse ? RepeatBehavior.Forever : default,
         });
     }
 
@@ -520,19 +577,18 @@ public partial class PreviewToastControl : System.Windows.Controls.UserControl
         catch { return fallback; }
     }
 
-    private static FontWeight ParseFontWeight(string name) =>
-        name switch
-        {
-            "Thin"       => FontWeights.Thin,
-            "Light"      => FontWeights.Light,
-            "Regular"    => FontWeights.Regular,
-            "Medium"     => FontWeights.Medium,
-            "SemiBold"   => FontWeights.SemiBold,
-            "Bold"       => FontWeights.Bold,
-            "ExtraBold"  => FontWeights.ExtraBold,
-            "Black"      => FontWeights.Black,
-            _            => FontWeights.Normal,
-        };
+    private static FontWeight ParseFontWeight(string name) => name switch
+    {
+        "Thin"      => FontWeights.Thin,
+        "Light"     => FontWeights.Light,
+        "Regular"   => FontWeights.Regular,
+        "Medium"    => FontWeights.Medium,
+        "SemiBold"  => FontWeights.SemiBold,
+        "Bold"      => FontWeights.Bold,
+        "ExtraBold" => FontWeights.ExtraBold,
+        "Black"     => FontWeights.Black,
+        _           => FontWeights.Normal,
+    };
 
     private void SetNoArt()
     {

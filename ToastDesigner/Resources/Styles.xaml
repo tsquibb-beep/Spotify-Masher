@@ -551,6 +551,66 @@
         </Setter>
     </Style>
 
+    <!-- TabControl -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background"       Value="Transparent"/>
+        <Setter Property="BorderThickness"  Value="0"/>
+        <Setter Property="Padding"          Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top"
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="0,0,0,1">
+                            <TabPanel x:Name="HeaderPanel"
+                                      IsItemsHost="True"
+                                      Background="Transparent"/>
+                        </Border>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                          ContentSource="SelectedContent"/>
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabItem -->
+    <Style TargetType="TabItem">
+        <Setter Property="Background"   Value="Transparent"/>
+        <Setter Property="Foreground"   Value="{StaticResource BrushTextMuted}"/>
+        <Setter Property="FontFamily"   Value="{StaticResource FontLexend}"/>
+        <Setter Property="FontSize"     Value="12"/>
+        <Setter Property="Padding"      Value="14,10"/>
+        <Setter Property="Cursor"       Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="Root"
+                            Background="Transparent"
+                            Padding="{TemplateBinding Padding}"
+                            BorderThickness="0,0,0,2"
+                            BorderBrush="Transparent">
+                        <ContentPresenter ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}"
+                                          TextElement.FontFamily="{TemplateBinding FontFamily}"
+                                          TextElement.FontSize="{TemplateBinding FontSize}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource BrushText}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Separator -->
     <Style TargetType="Separator">
         <Setter Property="Background" Value="{StaticResource BrushBorder}" />

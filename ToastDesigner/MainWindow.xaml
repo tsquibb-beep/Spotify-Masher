@@ -4,7 +4,7 @@
         xmlns:controls="clr-namespace:ToastDesigner.Controls"
         Title="Toast Designer"
         MinWidth="1060" MinHeight="700"
-        Width="1160" Height="780"
+        Width="1180" Height="800"
         Background="#1a1a2e"
         Foreground="#FFFFFF"
         Loaded="Window_Loaded">
@@ -15,262 +15,471 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ── LEFT: Editor panel ── -->
+        <!-- ══ LEFT: Editor panel ══ -->
         <Border Grid.Column="0"
                 BorderBrush="{StaticResource BrushBorder}"
                 BorderThickness="0,0,1,0">
             <DockPanel>
 
-                <!-- Footer buttons — pinned to bottom -->
+                <!-- Footer buttons pinned to bottom -->
                 <Border DockPanel.Dock="Bottom"
                         Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}"
                         BorderThickness="0,1,0,0"
                         Padding="14,10">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button x:Name="ExportBtn"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Copy Masher JSON"
-                                Click="Export_Click"
+                    <WrapPanel>
+                        <Button x:Name="ExportBtn" Style="{StaticResource PrimaryButton}"
+                                Content="Copy Masher JSON" Click="Export_Click"
                                 Margin="0,0,8,0"/>
-                        <Button x:Name="SaveBtn"
-                                Style="{StaticResource GhostButton}"
-                                Content="Save Theme"
-                                Click="Save_Click"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="LoadBtn"
-                                Style="{StaticResource GhostButton}"
-                                Content="Load Theme"
-                                Click="Load_Click"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="ResetBtn"
-                                Style="{StaticResource GhostButton}"
-                                Content="Reset"
+                        <Button Style="{StaticResource GhostButton}" Content="Save Theme"
+                                Click="Save_Click" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Load Theme"
+                                Click="Load_Click" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Reset"
                                 Click="Reset_Click"/>
                     </WrapPanel>
                 </Border>
 
-                <!-- Scrollable editor -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="16,12,16,12">
+                <!-- App title pinned to top -->
+                <Border DockPanel.Dock="Top" Padding="16,12,16,0">
+                    <TextBlock Text="Toast Designer"
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="{StaticResource BrushAccent}"/>
+                </Border>
 
-                        <!-- Title -->
-                        <TextBlock Text="Toast Designer"
-                                   FontSize="20" FontWeight="Bold"
-                                   Foreground="{StaticResource BrushAccent}"
-                                   Margin="0,0,0,16"/>
+                <!-- Tab control fills remaining space -->
+                <TabControl Margin="0,8,0,0">
 
-                        <!-- ══ BACKGROUND ══ -->
-                        <Expander Header="Background">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- TAB: BACKGROUND                                -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <TabItem Header="Background">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="16,14,16,16">
 
                                 <!-- Effect -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Effect" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
-                                <ComboBox x:Name="BgEffectCombo" Grid.Row="0" Grid.Column="1"
-                                          Height="30"
-                                          SelectionChanged="BgEffectCombo_SelectionChanged">
-                                    <ComboBoxItem>Gradient</ComboBoxItem>
-                                    <ComboBoxItem>Solid</ComboBoxItem>
-                                    <ComboBoxItem>Radial Glow</ComboBoxItem>
-                                    <ComboBoxItem>Grain</ComboBoxItem>
-                                    <ComboBoxItem>Image</ComboBoxItem>
-                                </ComboBox>
-
-                                <!-- Color 1 -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Color 1" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <controls:ColorPickerBox x:Name="BgColor1Picker" Grid.Row="1" Grid.Column="1"
-                                                         HexValue="#1c2748" Height="30" Margin="0,8,0,0"/>
-
-                                <!-- Color 2 -->
-                                <TextBlock x:Name="BgColor2Label" Grid.Row="2" Grid.Column="0" Text="Color 2" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <controls:ColorPickerBox x:Name="BgColor2Picker" Grid.Row="2" Grid.Column="1"
-                                                         HexValue="#111832" Height="30" Margin="0,8,0,0"/>
-
-                                <!-- Image path (hidden unless Effect = Image) -->
-                                <TextBlock x:Name="BgImageLabel" Grid.Row="3" Grid.Column="0" Text="Image" VerticalAlignment="Center" Margin="0,8,0,0"
-                                           Foreground="{StaticResource BrushTextMuted}" Visibility="Collapsed"/>
-                                <Grid x:Name="BgImageRow" Grid.Row="3" Grid.Column="1"
-                                      Margin="0,8,0,0" Visibility="Collapsed">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="BgImagePathBox" Grid.Column="0"
-                                             Height="30" IsReadOnly="True"
-                                             FontSize="11" Foreground="{StaticResource BrushTextMuted}"
-                                             ToolTip="Background image path"/>
-                                    <Button Grid.Column="1" Content="Browse"
-                                            Style="{StaticResource GhostButton}"
-                                            Padding="8,4" Margin="6,0,0,0"
-                                            Click="BrowseBgImage_Click"/>
-                                </Grid>
-
-                                <!-- Opacity -->
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
-                                    <TextBlock x:Name="BgOpacityValue" DockPanel.Dock="Right"
-                                               Text="1.00" Width="34" TextAlignment="Right"
-                                               VerticalAlignment="Center" FontSize="11"
-                                               Foreground="{StaticResource BrushTextMuted}"/>
-                                    <Slider x:Name="BgOpacitySlider"
-                                            Minimum="0" Maximum="1" Value="1"
-                                            SmallChange="0.01" LargeChange="0.05"
-                                            ValueChanged="Slider_ValueChanged"/>
-                                </DockPanel>
-
-                                <!-- Shimmer -->
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Shimmer" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <ComboBox x:Name="ShimmerCombo" Grid.Row="5" Grid.Column="1"
-                                          Height="30" Margin="0,8,0,0"
-                                          SelectionChanged="Combo_SelectionChanged">
-                                    <ComboBoxItem>Diagonal</ComboBoxItem>
-                                    <ComboBoxItem>Horizontal</ComboBoxItem>
-                                    <ComboBoxItem>Pulse</ComboBoxItem>
-                                    <ComboBoxItem>Static Gloss</ComboBoxItem>
-                                    <ComboBoxItem>Slide-Through</ComboBoxItem>
-                                    <ComboBoxItem>Spotlight</ComboBoxItem>
-                                    <ComboBoxItem>Breathing</ComboBoxItem>
-                                    <ComboBoxItem>None</ComboBoxItem>
-                                </ComboBox>
-
-                            </Grid>
-                        </Expander>
-
-                        <!-- ══ BORDER ══ -->
-                        <Expander Header="Border">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Animation -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Animation" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
-                                <ComboBox x:Name="BorderAnimCombo" Grid.Row="0" Grid.Column="1"
-                                          Height="30"
-                                          SelectionChanged="Combo_SelectionChanged">
-                                    <ComboBoxItem>Bottom Bar Drain</ComboBoxItem>
-                                    <ComboBoxItem>Fill from Centre</ComboBoxItem>
-                                    <ComboBoxItem>Full Border Trace</ComboBoxItem>
-                                    <ComboBoxItem>Orbiting Spark</ComboBoxItem>
-                                    <ComboBoxItem>Bouncing Edge</ComboBoxItem>
-                                    <ComboBoxItem>None</ComboBoxItem>
-                                </ComboBox>
-
-                                <!-- Border Color -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Color" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <controls:ColorPickerBox x:Name="BorderColorPicker" Grid.Row="1" Grid.Column="1"
-                                                         HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
-
-                                <!-- Thickness -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Thickness" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,10,0,0">
-                                    <TextBlock x:Name="BorderThicknessValue" DockPanel.Dock="Right"
-                                               Text="1.5" Width="34" TextAlignment="Right"
-                                               VerticalAlignment="Center" FontSize="11"
-                                               Foreground="{StaticResource BrushTextMuted}"/>
-                                    <Slider x:Name="BorderThicknessSlider"
-                                            Minimum="0" Maximum="8" Value="1.5"
-                                            SmallChange="0.5" LargeChange="1"
-                                            ValueChanged="Slider_ValueChanged"/>
-                                </DockPanel>
-
-                                <!-- Corner Radius -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Radius" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <DockPanel Grid.Row="3" Grid.Column="1" Margin="0,10,0,0">
-                                    <TextBlock x:Name="CornerRadiusValue" DockPanel.Dock="Right"
-                                               Text="10" Width="34" TextAlignment="Right"
-                                               VerticalAlignment="Center" FontSize="11"
-                                               Foreground="{StaticResource BrushTextMuted}"/>
-                                    <Slider x:Name="CornerRadiusSlider"
-                                            Minimum="0" Maximum="28" Value="10"
-                                            SmallChange="1" LargeChange="4"
-                                            ValueChanged="Slider_ValueChanged"/>
-                                </DockPanel>
-
-                                <!-- Border Opacity -->
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
-                                    <TextBlock x:Name="BorderOpacityValue" DockPanel.Dock="Right"
-                                               Text="1.00" Width="34" TextAlignment="Right"
-                                               VerticalAlignment="Center" FontSize="11"
-                                               Foreground="{StaticResource BrushTextMuted}"/>
-                                    <Slider x:Name="BorderOpacitySlider"
-                                            Minimum="0" Maximum="1" Value="1"
-                                            SmallChange="0.01" LargeChange="0.05"
-                                            ValueChanged="Slider_ValueChanged"/>
-                                </DockPanel>
-
-                                <!-- Glow toggle -->
-                                <CheckBox x:Name="GlowCheck" Grid.Row="5" Grid.ColumnSpan="2"
-                                          Content="Enable glow / shadow" IsChecked="True"
-                                          Margin="0,12,0,0"
-                                          Checked="GlowCheck_Changed"
-                                          Unchecked="GlowCheck_Changed"/>
-
-                                <!-- Glow Color -->
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Glow Color" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <controls:ColorPickerBox x:Name="GlowColorPicker" Grid.Row="6" Grid.Column="1"
-                                                         HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
-
-                                <!-- Glow Intensity -->
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Intensity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <DockPanel Grid.Row="7" Grid.Column="1" Margin="0,10,0,0">
-                                    <TextBlock x:Name="GlowIntensityValue" DockPanel.Dock="Right"
-                                               Text="16" Width="34" TextAlignment="Right"
-                                               VerticalAlignment="Center" FontSize="11"
-                                               Foreground="{StaticResource BrushTextMuted}"/>
-                                    <Slider x:Name="GlowIntensitySlider"
-                                            Minimum="0" Maximum="40" Value="16"
-                                            SmallChange="1" LargeChange="4"
-                                            ValueChanged="Slider_ValueChanged"/>
-                                </DockPanel>
-
-                                <!-- Outer shadow colour (separate from border colour) -->
-                                <TextBlock Grid.Row="8" Grid.Column="0" Text="Shadow" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <controls:ColorPickerBox x:Name="ShadowColorPicker" Grid.Row="8" Grid.Column="1"
-                                                         HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
-
-                            </Grid>
-                        </Expander>
-
-                        <!-- ══ TEXT ══ -->
-                        <Expander Header="Text">
-                            <StackPanel>
-
-                                <!-- Track -->
-                                <TextBlock Text="Track Name"
-                                           FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource BrushAccent}"
-                                           Margin="0,0,0,6"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Effect" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <ComboBox x:Name="BgEffectCombo" Grid.Column="1" Height="30"
+                                              SelectionChanged="BgEffectCombo_SelectionChanged">
+                                        <ComboBoxItem>Gradient</ComboBoxItem>
+                                        <ComboBoxItem>Solid</ComboBoxItem>
+                                        <ComboBoxItem>Grain</ComboBoxItem>
+                                        <ComboBoxItem>Image</ComboBoxItem>
+                                    </ComboBox>
+                                </Grid>
+
+                                <!-- Color 1 (always visible) -->
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Color 1" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="BgColor1Picker" Grid.Column="1"
+                                                             HexValue="#1c2748" Height="30"/>
+                                </Grid>
+
+                                <!-- Color 2 (only when used by effect) -->
+                                <Grid x:Name="Color2Row" Margin="0,8,0,0" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Color 2" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="BgColor2Picker" Grid.Column="1"
+                                                             HexValue="#111832" Height="30"/>
+                                </Grid>
+
+                                <!-- Gradient-specific controls -->
+                                <StackPanel x:Name="GradientPanel" Visibility="Collapsed">
+
+                                    <Separator Margin="0,12,0,8"/>
+                                    <TextBlock Text="Gradient" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{StaticResource BrushAccent}" Margin="0,0,0,8"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Angle (°)"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <DockPanel Grid.Row="0" Grid.Column="1">
+                                            <TextBlock x:Name="GradAngleValue" DockPanel.Dock="Right"
+                                                       Text="90" Width="40" TextAlignment="Right"
+                                                       VerticalAlignment="Center" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <Slider x:Name="GradAngleSlider"
+                                                    Minimum="0" Maximum="360" Value="90"
+                                                    SmallChange="1" LargeChange="15"
+                                                    ValueChanged="Slider_ValueChanged"/>
+                                        </DockPanel>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Sharpness"
+                                                   VerticalAlignment="Center" Margin="0,10,0,0"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                                            <TextBlock x:Name="GradSharpValue" DockPanel.Dock="Right"
+                                                       Text="0.00" Width="40" TextAlignment="Right"
+                                                       VerticalAlignment="Center" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <Slider x:Name="GradSharpSlider"
+                                                    Minimum="0" Maximum="1" Value="0"
+                                                    SmallChange="0.01" LargeChange="0.1"
+                                                    ValueChanged="Slider_ValueChanged"/>
+                                        </DockPanel>
+                                    </Grid>
+
+                                    <!-- Radial toggle -->
+                                    <CheckBox x:Name="RadialCheck" Content="Radial gradient"
+                                              Margin="0,12,0,0"
+                                              Checked="RadialCheck_Changed"
+                                              Unchecked="RadialCheck_Changed"/>
+
+                                    <!-- Radial controls (shown when radial is on) -->
+                                    <StackPanel x:Name="RadialPanel" Visibility="Collapsed" Margin="0,8,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Centre X"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <DockPanel Grid.Row="0" Grid.Column="1">
+                                                <TextBlock x:Name="RadCXValue" DockPanel.Dock="Right"
+                                                           Text="0.50" Width="40" TextAlignment="Right"
+                                                           VerticalAlignment="Center" FontSize="11"
+                                                           Foreground="{StaticResource BrushTextMuted}"/>
+                                                <Slider x:Name="RadCXSlider"
+                                                        Minimum="0" Maximum="1" Value="0.5"
+                                                        SmallChange="0.01" LargeChange="0.1"
+                                                        ValueChanged="Slider_ValueChanged"/>
+                                            </DockPanel>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Centre Y"
+                                                       VerticalAlignment="Center" Margin="0,8,0,0"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,8,0,0">
+                                                <TextBlock x:Name="RadCYValue" DockPanel.Dock="Right"
+                                                           Text="0.50" Width="40" TextAlignment="Right"
+                                                           VerticalAlignment="Center" FontSize="11"
+                                                           Foreground="{StaticResource BrushTextMuted}"/>
+                                                <Slider x:Name="RadCYSlider"
+                                                        Minimum="0" Maximum="1" Value="0.5"
+                                                        SmallChange="0.01" LargeChange="0.1"
+                                                        ValueChanged="Slider_ValueChanged"/>
+                                            </DockPanel>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Radius X"
+                                                       VerticalAlignment="Center" Margin="0,8,0,0"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,8,0,0">
+                                                <TextBlock x:Name="RadRXValue" DockPanel.Dock="Right"
+                                                           Text="0.70" Width="40" TextAlignment="Right"
+                                                           VerticalAlignment="Center" FontSize="11"
+                                                           Foreground="{StaticResource BrushTextMuted}"/>
+                                                <Slider x:Name="RadRXSlider"
+                                                        Minimum="0.05" Maximum="2.0" Value="0.7"
+                                                        SmallChange="0.01" LargeChange="0.1"
+                                                        ValueChanged="Slider_ValueChanged"/>
+                                            </DockPanel>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Radius Y"
+                                                       VerticalAlignment="Center" Margin="0,8,0,0"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <DockPanel Grid.Row="3" Grid.Column="1" Margin="0,8,0,0">
+                                                <TextBlock x:Name="RadRYValue" DockPanel.Dock="Right"
+                                                           Text="0.70" Width="40" TextAlignment="Right"
+                                                           VerticalAlignment="Center" FontSize="11"
+                                                           Foreground="{StaticResource BrushTextMuted}"/>
+                                                <Slider x:Name="RadRYSlider"
+                                                        Minimum="0.05" Maximum="2.0" Value="0.7"
+                                                        SmallChange="0.01" LargeChange="0.1"
+                                                        ValueChanged="Slider_ValueChanged"/>
+                                            </DockPanel>
+                                        </Grid>
+                                    </StackPanel>
+
+                                </StackPanel>
+
+                                <!-- Grain-specific controls -->
+                                <StackPanel x:Name="GrainPanel" Visibility="Collapsed">
+                                    <Separator Margin="0,12,0,8"/>
+                                    <TextBlock Text="Grain" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{StaticResource BrushAccent}" Margin="0,0,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Tint"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <controls:ColorPickerBox x:Name="GrainTintPicker" Grid.Row="0" Grid.Column="1"
+                                                                 HexValue="#FFFFFF" Height="30"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Scale"
+                                                   VerticalAlignment="Center" Margin="0,10,0,0"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                                            <TextBlock x:Name="GrainScaleValue" DockPanel.Dock="Right"
+                                                       Text="64" Width="40" TextAlignment="Right"
+                                                       VerticalAlignment="Center" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <Slider x:Name="GrainScaleSlider"
+                                                    Minimum="8" Maximum="256" Value="64"
+                                                    SmallChange="4" LargeChange="32"
+                                                    ValueChanged="Slider_ValueChanged"/>
+                                        </DockPanel>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Intensity"
+                                                   VerticalAlignment="Center" Margin="0,10,0,0"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,10,0,0">
+                                            <TextBlock x:Name="GrainIntensityValue" DockPanel.Dock="Right"
+                                                       Text="0.15" Width="40" TextAlignment="Right"
+                                                       VerticalAlignment="Center" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextMuted}"/>
+                                            <Slider x:Name="GrainIntensitySlider"
+                                                    Minimum="0" Maximum="1" Value="0.15"
+                                                    SmallChange="0.01" LargeChange="0.05"
+                                                    ValueChanged="Slider_ValueChanged"/>
+                                        </DockPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Image path controls -->
+                                <Grid x:Name="ImagePathRow" Visibility="Collapsed" Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Image" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <Grid Grid.Column="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="BgImagePathBox" Grid.Column="0"
+                                                 Height="30" IsReadOnly="True" FontSize="11"
+                                                 Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Button Grid.Column="1" Content="Browse"
+                                                Style="{StaticResource GhostButton}"
+                                                Padding="8,4" Margin="6,0,0,0"
+                                                Click="BrowseBgImage_Click"/>
+                                    </Grid>
+                                </Grid>
+
+                                <!-- Effect Opacity -->
+                                <Separator Margin="0,14,0,10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Effect Opacity"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="0" Grid.Column="1">
+                                        <TextBlock x:Name="EffectOpacityValue" DockPanel.Dock="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="EffectOpacitySlider"
+                                                Minimum="0" Maximum="1" Value="1"
+                                                SmallChange="0.01" LargeChange="0.05"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Toast Opacity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="BgOpacityValue" DockPanel.Dock="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="BgOpacitySlider"
+                                                Minimum="0" Maximum="1" Value="1"
+                                                SmallChange="0.01" LargeChange="0.05"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+                                </Grid>
+
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- TAB: BORDER                                    -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <TabItem Header="Border">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="16,14,16,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Animation"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <ComboBox x:Name="BorderAnimCombo" Grid.Row="0" Grid.Column="1"
+                                              Height="30" SelectionChanged="Combo_SelectionChanged">
+                                        <ComboBoxItem>Bottom Bar Drain</ComboBoxItem>
+                                        <ComboBoxItem>Fill from Centre</ComboBoxItem>
+                                        <ComboBoxItem>Full Border Trace</ComboBoxItem>
+                                        <ComboBoxItem>Orbiting Spark</ComboBoxItem>
+                                        <ComboBoxItem>Bouncing Edge</ComboBoxItem>
+                                        <ComboBoxItem>None</ComboBoxItem>
+                                    </ComboBox>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Color"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="BorderColorPicker" Grid.Row="1" Grid.Column="1"
+                                                             HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Thickness"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="BorderThicknessValue" DockPanel.Dock="Right"
+                                                   Text="1.5" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="BorderThicknessSlider"
+                                                Minimum="0" Maximum="8" Value="1.5"
+                                                SmallChange="0.5" LargeChange="1"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Corner Radius"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="3" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="CornerRadiusValue" DockPanel.Dock="Right"
+                                                   Text="10" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="CornerRadiusSlider"
+                                                Minimum="0" Maximum="28" Value="10"
+                                                SmallChange="1" LargeChange="4"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="BorderOpacityValue" DockPanel.Dock="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="BorderOpacitySlider"
+                                                Minimum="0" Maximum="1" Value="1"
+                                                SmallChange="0.01" LargeChange="0.05"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <CheckBox x:Name="GlowCheck" Grid.Row="5" Grid.ColumnSpan="2"
+                                              Content="Enable glow / outer shadow" IsChecked="True"
+                                              Margin="0,14,0,0"
+                                              Checked="GlowCheck_Changed"
+                                              Unchecked="GlowCheck_Changed"/>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Glow Color"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="GlowColorPicker" Grid.Row="6" Grid.Column="1"
+                                                             HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
+
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Intensity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="7" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="GlowIntensityValue" DockPanel.Dock="Right"
+                                                   Text="16" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="GlowIntensitySlider"
+                                                Minimum="0" Maximum="40" Value="16"
+                                                SmallChange="1" LargeChange="4"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Shadow"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="ShadowColorPicker" Grid.Row="8" Grid.Column="1"
+                                                             HexValue="#1DB954" Height="30" Margin="0,8,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- TAB: TEXT                                      -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <TabItem Header="Text">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="16,14,16,16">
+
+                                <!-- Track -->
+                                <TextBlock Text="TRACK NAME" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushAccent}" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -281,14 +490,18 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <controls:ColorPickerBox x:Name="TrackColorPicker" Grid.Row="0" Grid.Column="1"
                                                              HexValue="#FFFFFF" Height="30"/>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="TrackSizeValue" DockPanel.Dock="Right"
-                                                   Text="14" Width="34" TextAlignment="Right"
+                                                   Text="14.0" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="TrackSizeSlider"
@@ -297,7 +510,9 @@
                                                 ValueChanged="Slider_ValueChanged"/>
                                     </DockPanel>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <ComboBox x:Name="TrackWeightCombo" Grid.Row="2" Grid.Column="1"
                                               Height="30" Margin="0,8,0,0"
                                               SelectionChanged="Combo_SelectionChanged">
@@ -312,7 +527,9 @@
                                         <ComboBoxItem>Black</ComboBoxItem>
                                     </ComboBox>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <Grid Grid.Row="3" Grid.Column="1" Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -320,17 +537,17 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="TrackPrefixBox" Grid.Column="0" Height="30"
-                                                 FontSize="11" ToolTip="Prefix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Prefix" TextChanged="TextBox_Changed"/>
                                         <TextBox x:Name="TrackSuffixBox" Grid.Column="2" Height="30"
-                                                 FontSize="11" ToolTip="Suffix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Suffix" TextChanged="TextBox_Changed"/>
                                     </Grid>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="TrackOpacityValue" DockPanel.Dock="Right"
-                                                   Text="1.00" Width="34" TextAlignment="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="TrackOpacitySlider"
@@ -343,13 +560,11 @@
                                 <Separator/>
 
                                 <!-- Artist -->
-                                <TextBlock Text="Artist"
-                                           FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource BrushAccent}"
-                                           Margin="0,6,0,6"/>
+                                <TextBlock Text="ARTIST" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushAccent}" Margin="0,6,0,8"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -360,14 +575,18 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <controls:ColorPickerBox x:Name="ArtistColorPicker" Grid.Row="0" Grid.Column="1"
                                                              HexValue="#1DB954" Height="30"/>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="ArtistSizeValue" DockPanel.Dock="Right"
-                                                   Text="12.5" Width="34" TextAlignment="Right"
+                                                   Text="12.5" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="ArtistSizeSlider"
@@ -376,7 +595,9 @@
                                                 ValueChanged="Slider_ValueChanged"/>
                                     </DockPanel>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <ComboBox x:Name="ArtistWeightCombo" Grid.Row="2" Grid.Column="1"
                                               Height="30" Margin="0,8,0,0"
                                               SelectionChanged="Combo_SelectionChanged">
@@ -391,7 +612,9 @@
                                         <ComboBoxItem>Black</ComboBoxItem>
                                     </ComboBox>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <Grid Grid.Row="3" Grid.Column="1" Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -399,17 +622,17 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="ArtistPrefixBox" Grid.Column="0" Height="30"
-                                                 FontSize="11" ToolTip="Prefix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Prefix" TextChanged="TextBox_Changed"/>
                                         <TextBox x:Name="ArtistSuffixBox" Grid.Column="2" Height="30"
-                                                 FontSize="11" ToolTip="Suffix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Suffix" TextChanged="TextBox_Changed"/>
                                     </Grid>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="ArtistOpacityValue" DockPanel.Dock="Right"
-                                                   Text="1.00" Width="34" TextAlignment="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="ArtistOpacitySlider"
@@ -422,13 +645,11 @@
                                 <Separator/>
 
                                 <!-- Album -->
-                                <TextBlock Text="Album"
-                                           FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource BrushAccent}"
-                                           Margin="0,6,0,6"/>
+                                <TextBlock Text="ALBUM" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushAccent}" Margin="0,6,0,8"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -439,14 +660,18 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <controls:ColorPickerBox x:Name="AlbumColorPicker" Grid.Row="0" Grid.Column="1"
                                                              HexValue="#A0A0B0" Height="30"/>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Font Size"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="AlbumSizeValue" DockPanel.Dock="Right"
-                                                   Text="11.5" Width="34" TextAlignment="Right"
+                                                   Text="11.5" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="AlbumSizeSlider"
@@ -455,7 +680,9 @@
                                                 ValueChanged="Slider_ValueChanged"/>
                                     </DockPanel>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Weight"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <ComboBox x:Name="AlbumWeightCombo" Grid.Row="2" Grid.Column="1"
                                               Height="30" Margin="0,8,0,0"
                                               SelectionChanged="Combo_SelectionChanged">
@@ -470,7 +697,9 @@
                                         <ComboBoxItem>Black</ComboBoxItem>
                                     </ComboBox>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Prefix / Suffix"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <Grid Grid.Row="3" Grid.Column="1" Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -478,17 +707,17 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="AlbumPrefixBox" Grid.Column="0" Height="30"
-                                                 FontSize="11" ToolTip="Prefix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Prefix" TextChanged="TextBox_Changed"/>
                                         <TextBox x:Name="AlbumSuffixBox" Grid.Column="2" Height="30"
-                                                 FontSize="11" ToolTip="Suffix"
-                                                 TextChanged="TextBox_Changed"/>
+                                                 FontSize="11" ToolTip="Suffix" TextChanged="TextBox_Changed"/>
                                     </Grid>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Opacity"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
                                     <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
                                         <TextBlock x:Name="AlbumOpacityValue" DockPanel.Dock="Right"
-                                                   Text="1.00" Width="34" TextAlignment="Right"
+                                                   Text="1.00" Width="40" TextAlignment="Right"
                                                    VerticalAlignment="Center" FontSize="11"
                                                    Foreground="{StaticResource BrushTextMuted}"/>
                                         <Slider x:Name="AlbumOpacitySlider"
@@ -499,74 +728,276 @@
                                 </Grid>
 
                             </StackPanel>
-                        </Expander>
+                        </ScrollViewer>
+                    </TabItem>
 
-                        <!-- ══ SAMPLE DATA ══ -->
-                        <Expander Header="Sample Data">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- TAB: SHIMMER                                   -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <TabItem Header="Shimmer">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="16,14,16,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Track" VerticalAlignment="Center" Foreground="{StaticResource BrushTextMuted}"/>
-                                <TextBox x:Name="SampleTrackBox" Grid.Row="0" Grid.Column="1"
-                                         Text="Lose Yourself" Height="30"
-                                         TextChanged="SampleData_Changed"/>
+                                    <!-- Shape -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Shape"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <ComboBox x:Name="ShimmerShapeCombo" Grid.Row="0" Grid.Column="1"
+                                              Height="30" SelectionChanged="Combo_SelectionChanged">
+                                        <ComboBoxItem>Rectangle</ComboBoxItem>
+                                        <ComboBoxItem>Circle</ComboBoxItem>
+                                        <ComboBoxItem>Triangle</ComboBoxItem>
+                                        <ComboBoxItem>Star</ComboBoxItem>
+                                    </ComboBox>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Artist" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <TextBox x:Name="SampleArtistBox" Grid.Row="1" Grid.Column="1"
-                                         Text="Eminem" Height="30" Margin="0,8,0,0"
-                                         TextChanged="SampleData_Changed"/>
+                                    <!-- Width fraction -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Width"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="ShimmerWidthValue" DockPanel.Dock="Right"
+                                                   Text="0.25" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerWidthSlider"
+                                                Minimum="0.02" Maximum="2.0" Value="0.25"
+                                                SmallChange="0.01" LargeChange="0.1"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Album" VerticalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <TextBox x:Name="SampleAlbumBox" Grid.Row="2" Grid.Column="1"
-                                         Text="8 Mile" Height="30" Margin="0,8,0,0"
-                                         TextChanged="SampleData_Changed"/>
+                                    <!-- Height fraction -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Height"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="ShimmerHeightValue" DockPanel.Dock="Right"
+                                                   Text="1.50" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerHeightSlider"
+                                                Minimum="0.02" Maximum="3.0" Value="1.5"
+                                                SmallChange="0.01" LargeChange="0.2"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Album Art" VerticalAlignment="Center" Margin="0,10,0,0" Foreground="{StaticResource BrushTextMuted}"/>
-                                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
-                                    <Border Width="48" Height="48"
-                                            Background="{StaticResource BrushSurface2}"
-                                            CornerRadius="4" Margin="0,0,8,0"
-                                            BorderBrush="{StaticResource BrushBorder}"
-                                            BorderThickness="1">
-                                        <Image x:Name="SampleArtThumb"
-                                               Stretch="UniformToFill"/>
-                                    </Border>
-                                    <Button Content="Browse Art"
-                                            Style="{StaticResource GhostButton}"
-                                            Padding="10,6"
-                                            VerticalAlignment="Center"
-                                            Click="BrowseArt_Click"/>
-                                    <Button Content="Clear"
-                                            Style="{StaticResource GhostButton}"
-                                            Padding="10,6"
-                                            Margin="6,0,0,0"
-                                            VerticalAlignment="Center"
-                                            Click="ClearArt_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </Expander>
+                                    <!-- Color -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Color"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <controls:ColorPickerBox x:Name="ShimmerColorPicker" Grid.Row="3" Grid.Column="1"
+                                                             HexValue="#FFFFFF" Height="30" Margin="0,8,0,0"/>
 
-                    </StackPanel>
-                </ScrollViewer>
+                                    <!-- Transparency -->
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Transparency"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="ShimmerTransparencyValue" DockPanel.Dock="Right"
+                                                   Text="0.85" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerTransparencySlider"
+                                                Minimum="0" Maximum="1" Value="0.85"
+                                                SmallChange="0.01" LargeChange="0.1"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <!-- Blur (edge sharpness) -->
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Edge Blur"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="5" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="ShimmerBlurValue" DockPanel.Dock="Right"
+                                                   Text="12" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerBlurSlider"
+                                                Minimum="0" Maximum="60" Value="12"
+                                                SmallChange="1" LargeChange="5"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <!-- Rotation -->
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Rotation (°)"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="6" Grid.Column="1" Margin="0,10,0,0">
+                                        <TextBlock x:Name="ShimmerRotationValue" DockPanel.Dock="Right"
+                                                   Text="0" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerRotationSlider"
+                                                Minimum="0" Maximum="360" Value="0"
+                                                SmallChange="1" LargeChange="15"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <!-- Direction -->
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Direction"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <ComboBox x:Name="ShimmerDirectionCombo" Grid.Row="7" Grid.Column="1"
+                                              Height="30" Margin="0,10,0,0"
+                                              SelectionChanged="ShimmerDirection_SelectionChanged">
+                                        <ComboBoxItem>Left to Right</ComboBoxItem>
+                                        <ComboBoxItem>Right to Left</ComboBoxItem>
+                                        <ComboBoxItem>Top to Bottom</ComboBoxItem>
+                                        <ComboBoxItem>Bottom to Top</ComboBoxItem>
+                                        <ComboBoxItem>Static</ComboBoxItem>
+                                        <ComboBoxItem>Custom</ComboBoxItem>
+                                    </ComboBox>
+
+                                    <!-- Custom angle (hidden unless Direction = Custom) -->
+                                    <TextBlock x:Name="CustomDirLabel" Grid.Row="8" Grid.Column="0"
+                                               Text="Dir. Angle (°)"
+                                               VerticalAlignment="Center" Margin="0,10,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"
+                                               Visibility="Collapsed"/>
+                                    <DockPanel x:Name="CustomDirPanel" Grid.Row="8" Grid.Column="1"
+                                               Margin="0,10,0,0" Visibility="Collapsed">
+                                        <TextBlock x:Name="ShimmerDirAngleValue" DockPanel.Dock="Right"
+                                                   Text="0" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerDirAngleSlider"
+                                                Minimum="0" Maximum="360" Value="0"
+                                                SmallChange="1" LargeChange="15"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <!-- Speed -->
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Text="Speed (s)"
+                                               VerticalAlignment="Center" Margin="0,12,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="9" Grid.Column="1" Margin="0,12,0,0">
+                                        <TextBlock x:Name="ShimmerSpeedValue" DockPanel.Dock="Right"
+                                                   Text="2.0" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ShimmerSpeedSlider"
+                                                Minimum="0.2" Maximum="10" Value="2"
+                                                SmallChange="0.1" LargeChange="1"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+
+                                    <!-- Toast duration -->
+                                    <Separator Grid.Row="10" Grid.ColumnSpan="2" Margin="0,10"/>
+
+                                    <TextBlock Grid.Row="11" Grid.Column="0" Text="Duration (s)"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <DockPanel Grid.Row="11" Grid.Column="1">
+                                        <TextBlock x:Name="ToastDurationValue" DockPanel.Dock="Right"
+                                                   Text="4.0" Width="40" TextAlignment="Right"
+                                                   VerticalAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                        <Slider x:Name="ToastDurationSlider"
+                                                Minimum="1" Maximum="30" Value="4"
+                                                SmallChange="0.5" LargeChange="2"
+                                                ValueChanged="Slider_ValueChanged"/>
+                                    </DockPanel>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- TAB: SAMPLE DATA                              -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <TabItem Header="Sample">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="16,14,16,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Track"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBox x:Name="SampleTrackBox" Grid.Row="0" Grid.Column="1"
+                                             Text="Lose Yourself" Height="30"
+                                             TextChanged="SampleData_Changed"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Artist"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBox x:Name="SampleArtistBox" Grid.Row="1" Grid.Column="1"
+                                             Text="Eminem" Height="30" Margin="0,8,0,0"
+                                             TextChanged="SampleData_Changed"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Album"
+                                               VerticalAlignment="Center" Margin="0,8,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <TextBox x:Name="SampleAlbumBox" Grid.Row="2" Grid.Column="1"
+                                             Text="8 Mile" Height="30" Margin="0,8,0,0"
+                                             TextChanged="SampleData_Changed"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Album Art"
+                                               VerticalAlignment="Center" Margin="0,12,0,0"
+                                               Foreground="{StaticResource BrushTextMuted}"/>
+                                    <StackPanel Grid.Row="3" Grid.Column="1"
+                                                Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Border Width="48" Height="48"
+                                                Background="{StaticResource BrushSurface2}"
+                                                CornerRadius="4" Margin="0,0,8,0"
+                                                BorderBrush="{StaticResource BrushBorder}"
+                                                BorderThickness="1">
+                                            <Image x:Name="SampleArtThumb" Stretch="UniformToFill"/>
+                                        </Border>
+                                        <Button Content="Browse Art"
+                                                Style="{StaticResource GhostButton}"
+                                                Padding="10,6" VerticalAlignment="Center"
+                                                Click="BrowseArt_Click"/>
+                                        <Button Content="Clear"
+                                                Style="{StaticResource GhostButton}"
+                                                Padding="10,6" Margin="6,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Click="ClearArt_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                </TabControl>
             </DockPanel>
         </Border>
 
-        <!-- ── RIGHT: Preview panel ── -->
+        <!-- ══ RIGHT: Preview panel ══ -->
         <Grid Grid.Column="1" Background="#585858">
-            <!-- Dot-grid overlay — more visible on the mid-grey base -->
+            <!-- Dot-grid overlay -->
             <Border>
                 <Border.Background>
-                    <DrawingBrush TileMode="Tile"
-                                  Viewport="0,0,20,20"
+                    <DrawingBrush TileMode="Tile" Viewport="0,0,20,20"
                                   ViewportUnits="Absolute">
                         <DrawingBrush.Drawing>
                             <GeometryDrawing Brush="#55888888">
@@ -579,12 +1010,11 @@
                 </Border.Background>
             </Border>
 
-            <!-- Preview content -->
             <DockPanel>
-                <!-- Top bar: label + play/pause -->
+                <!-- Top bar: label + layer toggles + play/pause -->
                 <Border DockPanel.Dock="Top"
                         Background="#CC16213e"
-                        Padding="12,8">
+                        Padding="10,7">
                     <DockPanel>
                         <Button x:Name="PlayPauseBtn"
                                 DockPanel.Dock="Right"
@@ -592,10 +1022,25 @@
                                 Content="⏸ Pause"
                                 Padding="10,5"
                                 Click="PlayPause_Click"/>
-                        <TextBlock Text="LIVE PREVIEW"
-                                   FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource BrushTextMuted}"
-                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="SHOW:"
+                                       FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{StaticResource BrushTextMuted}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,10,0"/>
+                            <CheckBox x:Name="ShowBgCheck" Content="Background" IsChecked="True"
+                                      Margin="0,0,12,0" FontSize="12"
+                                      Checked="LayerToggle_Changed" Unchecked="LayerToggle_Changed"/>
+                            <CheckBox x:Name="ShowBorderCheck" Content="Border" IsChecked="True"
+                                      Margin="0,0,12,0" FontSize="12"
+                                      Checked="LayerToggle_Changed" Unchecked="LayerToggle_Changed"/>
+                            <CheckBox x:Name="ShowTextCheck" Content="Text" IsChecked="True"
+                                      Margin="0,0,12,0" FontSize="12"
+                                      Checked="LayerToggle_Changed" Unchecked="LayerToggle_Changed"/>
+                            <CheckBox x:Name="ShowShimmerCheck" Content="Shimmer" IsChecked="True"
+                                      FontSize="12"
+                                      Checked="LayerToggle_Changed" Unchecked="LayerToggle_Changed"/>
+                        </StackPanel>
                     </DockPanel>
                 </Border>
 
