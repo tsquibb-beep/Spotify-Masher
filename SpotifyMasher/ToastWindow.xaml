@@ -18,6 +18,21 @@
         </ResourceDictionary>
     </Window.Resources>
 
+    <Grid x:Name="ToastRoot">
+
+    <!-- Aurora Glow halo — blurred animated gradient behind the toast (Aurora Glow border type).
+         Stretches to the same rect as ToastBorder; padding/animation set in code-behind. -->
+    <Border x:Name="AuroraGlow"
+            CornerRadius="8"
+            IsHitTestVisible="False"
+            Visibility="Collapsed"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+        <Border.Effect>
+            <BlurEffect x:Name="AuroraBlur" Radius="18"/>
+        </Border.Effect>
+    </Border>
+
     <Border x:Name="ToastBorder"
             BorderBrush="{StaticResource BrushBorder}"
             BorderThickness="1"
@@ -46,6 +61,17 @@
                     CornerRadius="7"
                     IsHitTestVisible="False"
                     Visibility="Collapsed"/>
+
+            <!-- Aurora curtains — drifting colour bands behind the text (Aurora Glow look).
+                 Brush + animation set in code-behind. -->
+            <Border x:Name="AuroraBg"
+                    CornerRadius="7"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                <Border.Effect>
+                    <BlurEffect x:Name="AuroraBgBlur" Radius="10"/>
+                </Border.Effect>
+            </Border>
 
             <!-- Main content — padding applied via Margin so the bar/shimmer can reach the edges -->
             <Grid Margin="12,10,12,10">
@@ -166,4 +192,5 @@
                        Visibility="Collapsed"/>
         </Grid>
     </Border>
+    </Grid>
 </Window>

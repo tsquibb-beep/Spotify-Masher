@@ -45,6 +45,7 @@ public partial class MainWindow : Window
         "Full Border Trace",
         "Orbiting Spark",
         "Bouncing Edge",
+        "Aurora Glow",
         "None",
     ];
 
@@ -59,6 +60,9 @@ public partial class MainWindow : Window
         "Breathing",
         "None",
     ];
+
+    public static IReadOnlyList<string> AvailablePresets { get; } =
+        [.. Models.ToastPresets.Names, Models.ToastPresets.CustomName];
 
     private readonly ObservableCollection<HotkeyBinding> _bindings = [];
     private readonly ObservableCollection<ProcessToastRule> _processRules = [];
@@ -242,11 +246,27 @@ public partial class MainWindow : Window
         SetHotkeysVisible(false);
     }
 
-    private void SetHotkeysVisible(bool visible)
+    private void SetHotkeysVisible(bool visible) =>
+        SetActivePanel(visible ? Panel.Hotkeys : Panel.None);
+
+    private enum Panel { None, Hotkeys, Notifications, Style }
+
+    // Accordion: at most one panel open at a time. The other panels' entry buttons are hidden
+    // while a panel is open; only the active panel's expanded (Save) buttons show.
+    private void SetActivePanel(Panel panel)
     {
-        HotkeySection.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        HotkeyCollapsedButtons.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
-        HotkeyExpandedButtons.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        HotkeySection.Visibility = panel == Panel.Hotkeys       ? Visibility.Visible : Visibility.Collapsed;
+        NotifSection.Visibility  = panel == Panel.Notifications ? Visibility.Visible : Visibility.Collapsed;
+        StyleSection.Visibility  = panel == Panel.Style         ? Visibility.Visible : Visibility.Collapsed;
+
+        bool none = panel == Panel.None;
+        HotkeyCollapsedButtons.Visibility = none ? Visibility.Visible : Visibility.Collapsed;
+        NotifCollapsedButton.Visibility   = none ? Visibility.Visible : Visibility.Collapsed;
+        StyleCollapsedButton.Visibility   = none ? Visibility.Visible : Visibility.Collapsed;
+
+        HotkeyExpandedButtons.Visibility = panel == Panel.Hotkeys       ? Visibility.Visible : Visibility.Collapsed;
+        NotifExpandedButton.Visibility   = panel == Panel.Notifications ? Visibility.Visible : Visibility.Collapsed;
+        StyleExpandedButton.Visibility   = panel == Panel.Style         ? Visibility.Visible : Visibility.Collapsed;
     }
 
     internal void ToggleDebugLog()
@@ -280,10 +300,8 @@ public partial class MainWindow : Window
 
     private void ToggleNotifications_Click(object sender, RoutedEventArgs e)
     {
-        var open = NotifSection.Visibility == Visibility.Visible;
-        NotifSection.Visibility = open ? Visibility.Collapsed : Visibility.Visible;
-        NotifCollapsedButton.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
-        NotifExpandedButton.Visibility = open ? Visibility.Collapsed : Visibility.Visible;
+        bool open = NotifSection.Visibility == Visibility.Visible;
+        SetActivePanel(open ? Panel.None : Panel.Notifications);
     }
 
     private void LoadNotificationSettings(Models.ToastSettings s)
@@ -451,6 +469,8 @@ public partial class MainWindow : Window
     {
         _loadingStyleSettings = true;
 
+        StylePreset.SelectedItem     = AvailablePresets.Contains(t.PresetName)
+                                       ? t.PresetName : Models.ToastPresets.CustomName;
         StyleBgEffect.SelectedItem   = AvailableBackgroundEffects.Contains(t.BackgroundEffect)
                                        ? t.BackgroundEffect : "Gradient";
         StyleBgColor1.HexValue       = t.BackgroundColor1;
@@ -464,6 +484,17 @@ public partial class MainWindow : Window
         StyleBorderColor.HexValue    = t.ActionBorderColor;
         StyleShimmerEffect.SelectedItem = AvailableShimmerEffects.Contains(t.ShimmerEffect)
                                           ? t.ShimmerEffect : "Diagonal";
+
+        // Aurora Custom editor — 4 gradient pickers + background. Seeded from this theme's palette
+        // so switching a preset → Aurora Custom carries the colours over as a starting point.
+        var grad = t.AuroraGradientColors;
+        StyleAuroraC1.HexValue = grad.ElementAtOrDefault(0) ?? "#FFB224";
+        StyleAuroraC2.HexValue = grad.ElementAtOrDefault(1) ?? "#E34BA9";
+        StyleAuroraC3.HexValue = grad.ElementAtOrDefault(2) ?? "#0072F5";
+        StyleAuroraC4.HexValue = grad.ElementAtOrDefault(3) ?? "#95F3D9";
+        StyleAuroraBg.HexValue = t.BackgroundColor1;
+        AuroraCustomPanel.Visibility = t.PresetName == Models.ToastPresets.CustomName
+                                       ? Visibility.Visible : Visibility.Collapsed;
 
         _loadingStyleSettings = false;
         UpdateStyleColor2Visibility();
@@ -479,31 +510,64 @@ public partial class MainWindow : Window
     private void ToggleStyle_Click(object sender, RoutedEventArgs e)
     {
         bool open = StyleSection.Visibility == Visibility.Visible;
-        StyleSection.Visibility       = open ? Visibility.Collapsed : Visibility.Visible;
-        StyleCollapsedButton.Visibility = open ? Visibility.Visible  : Visibility.Collapsed;
-        StyleExpandedButton.Visibility  = open ? Visibility.Collapsed : Visibility.Visible;
+        SetActivePanel(open ? Panel.None : Panel.Style);
     }
 
     private void SaveStyle_Click(object sender, RoutedEventArgs e)
     {
         var config = App.ConfigService.Load();
-        var t = config.ToastSettings.Theme;
-
-        t.BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()   ?? "Gradient";
-        t.BackgroundColor1  = StyleBgColor1.HexValue;
-        t.BackgroundColor2  = StyleBgColor2.HexValue;
-        t.GlowColor         = StyleGlowColor.HexValue;
-        t.MessageTextColor  = StyleMsgColor.HexValue;
-        t.ArtistTextColor   = StyleArtistColor.HexValue;
-        t.AlbumTextColor    = StyleAlbumColor.HexValue;
-        t.ActionBorderType  = StyleBorderType.SelectedItem?.ToString() ?? "Bottom Bar Drain";
-        t.ActionBorderColor = StyleBorderColor.HexValue;
-        t.ShimmerEffect     = StyleShimmerEffect.SelectedItem?.ToString() ?? "Diagonal";
+        var t = BuildActiveTheme();
+        config.ToastSettings.Theme = t;
 
         App.ConfigService.Save(config);
-        AppLogger.Log($"Toast style saved — effect={t.BackgroundEffect} border={t.ActionBorderType}");
+        AppLogger.Log($"Toast style saved — preset={t.PresetName} border={t.ActionBorderType}");
 
         ToggleStyle_Click(sender, e);
+    }
+
+    // The theme to preview/save. A chosen preset returns its canonical object; "Aurora Custom"
+    // builds an Aurora theme from the 4 gradient pickers + background, with curtains derived
+    // automatically (lightened tints of the gradient) so the editor stays simple.
+    private Models.ToastTheme BuildActiveTheme()
+    {
+        var name = StylePreset.SelectedItem?.ToString() ?? Models.ToastPresets.CustomName;
+        if (name != Models.ToastPresets.CustomName && Models.ToastPresets.Names.Contains(name))
+            return Models.ToastPresets.Get(name);
+
+        string[] grad =
+        [
+            StyleAuroraC1.HexValue, StyleAuroraC2.HexValue,
+            StyleAuroraC3.HexValue, StyleAuroraC4.HexValue,
+        ];
+
+        return new Models.ToastTheme
+        {
+            PresetName           = Models.ToastPresets.CustomName,
+            BackgroundEffect     = "Solid",
+            BackgroundColor1     = StyleAuroraBg.HexValue,
+            BackgroundColor2     = StyleAuroraBg.HexValue,
+            GlowColor            = grad[0],
+            MessageTextColor     = "#FFFFFF",
+            ArtistTextColor      = grad[3],
+            AlbumTextColor       = "#9AA0A6",
+            ActionBorderType     = "Aurora Glow",
+            ActionBorderColor    = grad[0],
+            ShimmerEffect        = "None",
+            AuroraGradientColors = grad,
+            AuroraCurtainColors  = [.. grad.Select(h => Lighten(h, 0.45))],
+        };
+    }
+
+    // Blend a #RRGGBB colour toward white by factor f (0 = unchanged, 1 = white) for soft curtains.
+    private static string Lighten(string hex, double f)
+    {
+        try
+        {
+            var c = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex)!;
+            byte L(byte v) => (byte)(v + (255 - v) * f);
+            return $"#{L(c.R):X2}{L(c.G):X2}{L(c.B):X2}";
+        }
+        catch { return hex; }
     }
 
     private void StyleBgEffect_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -512,21 +576,28 @@ public partial class MainWindow : Window
         UpdateStyleColor2Visibility();
     }
 
+    private void StylePreset_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingStyleSettings) return;
+
+        var name = StylePreset.SelectedItem?.ToString();
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (name == Models.ToastPresets.CustomName)
+        {
+            // Reveal the custom editor; the pickers keep whatever palette was last loaded as a seed.
+            AuroraCustomPanel.Visibility = Visibility.Visible;
+            return;
+        }
+
+        // Apply the chosen preset — this also populates the custom pickers and hides the panel.
+        // Re-entrancy guard via _loadingStyleSettings stops this reverting to "Aurora Custom".
+        LoadStyleSettings(Models.ToastPresets.Get(name));
+    }
+
     private void PreviewToast_Click(object sender, RoutedEventArgs e)
     {
-        var theme = new Models.ToastTheme
-        {
-            BackgroundEffect  = StyleBgEffect.SelectedItem?.ToString()        ?? "Gradient",
-            BackgroundColor1  = StyleBgColor1.HexValue,
-            BackgroundColor2  = StyleBgColor2.HexValue,
-            GlowColor         = StyleGlowColor.HexValue,
-            MessageTextColor  = StyleMsgColor.HexValue,
-            ArtistTextColor   = StyleArtistColor.HexValue,
-            AlbumTextColor    = StyleAlbumColor.HexValue,
-            ActionBorderType  = StyleBorderType.SelectedItem?.ToString()      ?? "Bottom Bar Drain",
-            ActionBorderColor = StyleBorderColor.HexValue,
-            ShimmerEffect     = StyleShimmerEffect.SelectedItem?.ToString()   ?? "Diagonal",
-        };
+        var theme = BuildActiveTheme();
 
         var config = App.ConfigService.Load();
         var payload = new Models.ToastPayload("Preview toast notification", null,

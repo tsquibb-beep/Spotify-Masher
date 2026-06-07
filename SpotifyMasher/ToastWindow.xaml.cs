@@ -142,11 +142,16 @@ public partial class ToastWindow : Window
         FillCentreRect.Visibility  = Visibility.Collapsed;
         BorderTraceRect.Visibility = Visibility.Collapsed;
         TopEdgeRect.Visibility     = Visibility.Collapsed;
+        AuroraGlow.Visibility      = Visibility.Collapsed;
 
         Color borderColor = ParseColor(t.ActionBorderColor, Color.FromRgb(0x1D, 0xB9, 0x54));
 
         switch (t.ActionBorderType)
         {
+            case "Aurora Glow":
+                ApplyAuroraGlow();
+                break;
+
             case "Bottom Bar Drain":
                 CountdownBar.Visibility = Visibility.Visible;
                 CountdownBar.Fill = BuildSparkGradient(borderColor);
@@ -173,6 +178,137 @@ public partial class ToastWindow : Window
                 TopEdgeRect.Visibility = Visibility.Visible;
                 // fill + animation set in StartFxAnimations once layout is ready
                 break;
+        }
+    }
+
+    // Aurora Glow — a blurred, animated multi-colour gradient halo behind the toast.
+    // WPF recreation of the LobeHub "Get Started" button: linear-gradient(-45deg) of four
+    // colours, oversized + drifting (background-position animation) + blur(0.5em) + opacity 0.5.
+    private const double AuroraPad = 16;       // transparent room around the toast for the blur to bleed
+    private LinearGradientBrush? _auroraBrush;
+    private LinearGradientBrush? _auroraBgBrush;
+
+    // One drift period for the curtains — shifting both gradient points by this vector loops seamlessly.
+    private static readonly Vector AuroraBgDrift = new(0.32, 0.19);
+
+    private static readonly string[] AuroraGradientFallback = ["#FFB224", "#E34BA9", "#0072F5", "#95F3D9"];
+    private static readonly string[] AuroraCurtainFallback  = ["#3B82F6", "#A5B4FC", "#93C5FD", "#DDD6FE", "#60A5FA"];
+
+    // Evenly-spaced gradient (offsets 0, 1/n, 2/n …) with the first colour repeated at 1.0,
+    // so a SpreadMethod=Repeat scroll tiles with no seam.
+    private static GradientStopCollection BuildLoopStops(string[]? colors, string[] fallback)
+    {
+        string[] c = colors is { Length: >= 2 } ? colors : fallback;
+        var stops = new GradientStopCollection();
+        for (int i = 0; i < c.Length; i++)
+            stops.Add(new GradientStop(ParseColor(c[i], Colors.Magenta), (double)i / c.Length));
+        stops.Add(new GradientStop(ParseColor(c[0], Colors.Magenta), 1.0));
+        return stops;
+    }
+
+    // Curtain shards: transparent gap, colours spread across 0.10–0.70, transparent tail — the
+    // baked-in alpha mask that replaces the CSS black-stripe + difference-blend trick.
+    private static GradientStopCollection BuildCurtainStops(string[]? colors, string[] fallback)
+    {
+        string[] c = colors is { Length: >= 1 } ? colors : fallback;
+        const double lo = 0.10, hi = 0.70;
+        var stops = new GradientStopCollection { new(Colors.Transparent, 0.0) };
+        for (int i = 0; i < c.Length; i++)
+        {
+            double off = c.Length == 1 ? (lo + hi) / 2 : lo + (hi - lo) * i / (c.Length - 1);
+            stops.Add(new GradientStop(ParseColor(c[i], Colors.SkyBlue), off));
+        }
+        stops.Add(new GradientStop(Colors.Transparent, 0.85));
+        stops.Add(new GradientStop(Colors.Transparent, 1.0));
+        return stops;
+    }
+
+    private void ApplyAuroraGlow()
+    {
+        // Pad the toast so the blurred halo has room inside the window.
+        ToastBorder.Margin = new Thickness(AuroraPad);
+        AuroraGlow.Margin  = new Thickness(AuroraPad);
+        AuroraGlow.CornerRadius = ToastBorder.CornerRadius;
+
+        // The halo IS the glow here — drop the single-colour DropShadow so they don't fight.
+        ToastBorder.Effect = null;
+
+        // Palette-driven (per theme). Colours spread evenly with the first repeated at 1.0 so the
+        // SpreadMethod=Repeat scroll tiles seamlessly.
+        _auroraBrush = new LinearGradientBrush
+        {
+            StartPoint   = new Point(0, 0),
+            EndPoint     = new Point(1, 1),     // -45° diagonal
+            SpreadMethod = GradientSpreadMethod.Repeat,
+            GradientStops = BuildLoopStops(_theme.AuroraGradientColors,
+                AuroraGradientFallback),
+        };
+
+        AuroraGlow.Background = _auroraBrush;
+        AuroraGlow.Opacity    = 0.5;
+        AuroraGlow.Visibility = Visibility.Visible;
+
+        // Same brush instance on the crisp border — the blur lives on the halo element only,
+        // so the border stays sharp and animates in perfect sync with the glow.
+        ToastBorder.BorderBrush     = _auroraBrush;
+        ToastBorder.BorderThickness = new Thickness(1);
+
+        ApplyAuroraCurtains();
+    }
+
+    // Aurora curtains — the Aceternity "Aurora Background": drifting ~100° colour bands behind
+    // the text. WPF approximation of two repeating-linear-gradients + mix-blend-mode:difference —
+    // the black stripe-mask is baked into alpha (transparent gaps) so no blend shader is needed.
+    private void ApplyAuroraCurtains()
+    {
+        _auroraBgBrush = new LinearGradientBrush
+        {
+            StartPoint   = new Point(0, 0),
+            EndPoint     = new Point(AuroraBgDrift.X, AuroraBgDrift.Y),  // ~100° (near-horizontal, tilted)
+            SpreadMethod = GradientSpreadMethod.Repeat,
+            GradientStops = BuildCurtainStops(_theme.AuroraCurtainColors, AuroraCurtainFallback),
+        };
+
+        AuroraBg.Background = _auroraBgBrush;
+        AuroraBg.Opacity    = 0.08;   // subtle — lets the dark card dominate, like the reference
+        AuroraBg.Visibility = Visibility.Visible;
+
+        // Vertical falloff — the website's shards fade out toward the top/bottom edges rather
+        // than running as uniform streaks. An OpacityMask tapers the curtains at both ends.
+        AuroraBg.OpacityMask = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint   = new Point(0, 1),
+            GradientStops = new GradientStopCollection
+            {
+                new(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), 0.00),  // top: full — shards anchored here
+                new(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), 0.50),
+                new(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), 1.00),  // bottom: faded out — shards trail off
+            },
+        };
+    }
+
+    private void StartAuroraAnimation()
+    {
+        if (_auroraBrush is null) return;
+
+        // Scroll the gradient by exactly one colour period (the full StartPoint→EndPoint vector)
+        // so it loops with no visible seam — the WPF analog of the background-position drift.
+        var dur = new Duration(TimeSpan.FromSeconds(5));
+        _auroraBrush.BeginAnimation(LinearGradientBrush.StartPointProperty,
+            new PointAnimation(new Point(0, 0), new Point(1, 1), dur) { RepeatBehavior = RepeatBehavior.Forever });
+        _auroraBrush.BeginAnimation(LinearGradientBrush.EndPointProperty,
+            new PointAnimation(new Point(1, 1), new Point(2, 2), dur) { RepeatBehavior = RepeatBehavior.Forever });
+
+        // Curtains drift slowly sideways — shift both points by one full period so it loops seamlessly.
+        if (_auroraBgBrush is not null)
+        {
+            var bgDur = new Duration(TimeSpan.FromSeconds(10));
+            Point s0 = _auroraBgBrush.StartPoint, e0 = _auroraBgBrush.EndPoint;
+            _auroraBgBrush.BeginAnimation(LinearGradientBrush.StartPointProperty,
+                new PointAnimation(s0, s0 + AuroraBgDrift, bgDur) { RepeatBehavior = RepeatBehavior.Forever });
+            _auroraBgBrush.BeginAnimation(LinearGradientBrush.EndPointProperty,
+                new PointAnimation(e0, e0 + AuroraBgDrift, bgDur) { RepeatBehavior = RepeatBehavior.Forever });
         }
     }
 
@@ -351,6 +487,10 @@ public partial class ToastWindow : Window
 
         switch (_theme.ActionBorderType)
         {
+            case "Aurora Glow":
+                StartAuroraAnimation();
+                break;
+
             case "Bottom Bar Drain":
                 CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty,
                     new DoubleAnimation(1.0, 0.0, duration));

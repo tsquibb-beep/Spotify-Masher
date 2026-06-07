@@ -369,6 +369,39 @@
                 Visibility="Collapsed">
             <StackPanel Margin="14">
 
+                <!-- Preset picker (primary control) -->
+                <TextBlock Text="Preset" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="StylePreset"
+                          ItemsSource="{x:Static local:MainWindow.AvailablePresets}"
+                          SelectionChanged="StylePreset_SelectionChanged"
+                          Width="220" HorizontalAlignment="Left"
+                          Margin="0,0,0,14"/>
+
+                <!-- ══ Aurora Custom — pick your own 4 gradient colours + background ══ -->
+                <StackPanel x:Name="AuroraCustomPanel" Visibility="Collapsed" Margin="0,0,0,4">
+                    <TextBlock Text="Gradient Colours" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <controls:ColorPickerBox x:Name="StyleAuroraC1" Width="104" Margin="0,0,6,0"/>
+                        <controls:ColorPickerBox x:Name="StyleAuroraC2" Width="104" Margin="0,0,6,0"/>
+                        <controls:ColorPickerBox x:Name="StyleAuroraC3" Width="104" Margin="0,0,6,0"/>
+                        <controls:ColorPickerBox x:Name="StyleAuroraC4" Width="104"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Background Colour" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                    <controls:ColorPickerBox x:Name="StyleAuroraBg" Width="120"
+                                             HorizontalAlignment="Left" Margin="0,0,0,4"/>
+
+                    <TextBlock Text="The drifting background shards are derived automatically from your gradient colours."
+                               FontSize="10.5" TextWrapping="Wrap"
+                               Foreground="{StaticResource BrushTextMuted}" Opacity="0.8"/>
+                </StackPanel>
+
+                <!-- ══ Manual controls (hidden — kept for power users / future use) ══ -->
+                <StackPanel x:Name="ManualStyleControls" Visibility="Collapsed">
+
                 <!-- Background style (texture) -->
                 <TextBlock Text="Background Style" FontSize="11" FontWeight="SemiBold"
                            Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
@@ -435,6 +468,9 @@
                           ItemsSource="{x:Static local:MainWindow.AvailableShimmerEffects}"
                           Width="160" HorizontalAlignment="Left"
                           Margin="0,0,0,16"/>
+
+                </StackPanel>
+                <!-- ══ end Manual controls ══ -->
 
                 <!-- Preview / Reset buttons -->
                 <StackPanel Orientation="Horizontal">
