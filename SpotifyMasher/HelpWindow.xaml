@@ -130,7 +130,7 @@
                         <!-- Configuring Hotkeys -->
                         <TextBlock Style="{StaticResource SectionHead}" Text="Configuring Hotkeys" />
                         <TextBlock Style="{StaticResource BodyText}">
-                            Click <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Edit Hotkeys</Run>, then
+                            Click <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Hotkeys</Run>, then
                             <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">+ Add Hotkey</Run>.
                             Click in the Keybinding cell and press your key combo.
                             Choose an action, enter a parameter if needed, then click
@@ -222,6 +222,21 @@
                                    Text="• Freehand — click Drag to set position and drag the preview to wherever you want." />
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
                                    Text="Per-app overrides let you set a different toast position when a specific app is in focus. Add the process name (e.g. chrome.exe) and use the drag picker to set its position." />
+
+                        <!-- Toast Style &amp; Presets -->
+                        <TextBlock Style="{StaticResource SectionHead}" Text="Toast Style" />
+                        <TextBlock Style="{StaticResource BodyText}">
+                            Open <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Toast Style</Run>,
+                            pick a look from the <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Preset</Run>
+                            dropdown, then click <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Save Style</Run>.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0">
+                            To use your own colours, choose <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Aurora Custom</Run>,
+                            then set the four gradient colours and the background colour — click a swatch to open the
+                            colour picker, or type a hex code.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
+                                   Text="Click Preview Toast to see your choice before saving, or Reset to Defaults to start over." />
 
                         <!-- Tips -->
                         <TextBlock Style="{StaticResource SectionHead}" Text="Tips" />
