@@ -26,11 +26,37 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## What's it look like?
 
-![Spotify Masher main window](screenshots/main.png?v=3)
+![Spotify Masher main window](screenshots/main.png?v=4)
 
-![Spotify Masher hotkey bindings](screenshots/hotkeys.png?v=1)
+![Spotify Masher hotkey bindings](screenshots/hotkeys.png?v=2)
 
-![Spotify Masher notification settings](screenshots/notifications.png?v=1)
+![Spotify Masher notification settings](screenshots/notifications.png?v=2)
+
+---
+
+## Toast notifications
+
+When you trigger an action, Spotify Masher shows a customisable toast. Pick from the **Aurora** preset family, or design your own with **Aurora Custom** — then preview it live at its real position on screen before saving.
+
+![Spotify Masher Toast Style pane](screenshots/toasts.png)
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="screenshots/toast-dropdown.png" alt="Aurora preset dropdown"><br>
+      <sub>Choose a preset from the Aurora family</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="screenshots/toast-custom.png" alt="Aurora Custom colour editor"><br>
+      <sub>Or build your own with Aurora Custom</sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="screenshots/toast-example.png" alt="Aurora toast notification in action"><br>
+  <sub>The Aurora Glow toast — animated gradient border, glow halo, and drifting curtains</sub>
+</p>
 
 ---
 
@@ -45,6 +71,8 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 - **Add to Playlist** — paste any Spotify playlist URL, URI, or ID
 - **Show Current Track** — toast with track name, artist, album, and cover art
 - **Toast notifications** — customisable position, duration, and per-app overrides
+- **Aurora toast themes** — a preset family (Aurora Masher, ADHD, Twilight, Lagoon, Ember, Frost) with animated glow borders and drifting aurora curtains, plus an **Aurora Custom** editor to pick your own colours
+- **Live preview** — preview your toast at its real on-screen position before saving
 - Starts silently in the system tray on launch
 - Silent token refresh — no re-login after the first time
 - Optional **Launch at Startup** from the tray menu
@@ -78,13 +106,13 @@ No installation required — run from wherever you like.
 ### 2. Connect Spotify Masher
 
 1. Launch `SpotifyMasher.exe`
-2. Paste your Client ID and click **Connect** — your browser will open for a one-time login
+2. Paste your Client ID and click **Authorise with Spotify** — your browser will open for a one-time login
 3. After authorising, the browser closes and the app is ready
 
 ### 3. Set up your hotkeys
 
 1. Open the app from the system tray
-2. Click **Edit Hotkeys**, add your hotkeys, and click **Save**
+2. Open the **Hotkeys** panel, add your hotkeys, and click **Save Hotkeys**
 
 ---
 
