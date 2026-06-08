@@ -26,11 +26,11 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## What's it look like?
 
-![Spotify Masher main window](screenshots/main.png?v=4)
+![Spotify Masher main window](screenshots/main.png?v=5)
 
-![Spotify Masher hotkey bindings](screenshots/hotkeys.png?v=2)
+![Spotify Masher hotkey bindings](screenshots/hotkeys.png?v=3)
 
-![Spotify Masher notification settings](screenshots/notifications.png?v=2)
+![Spotify Masher notification settings](screenshots/notifications.png?v=3)
 
 ---
 
@@ -38,23 +38,23 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 When you trigger an action, Spotify Masher shows a customisable toast. Pick from the **Aurora** preset family, or design your own with **Aurora Custom** — then preview it live at its real position on screen before saving.
 
-![Spotify Masher Toast Style pane](screenshots/toasts.png)
+![Spotify Masher Toast Style pane](screenshots/toasts.png?v=1)
 
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="screenshots/toast-dropdown.png" alt="Aurora preset dropdown"><br>
+      <img src="screenshots/toast-dropdown.png?v=1" alt="Aurora preset dropdown"><br>
       <sub>Choose a preset from the Aurora family</sub>
     </td>
     <td width="50%" align="center">
-      <img src="screenshots/toast-custom.png" alt="Aurora Custom colour editor"><br>
+      <img src="screenshots/toast-custom.png?v=1" alt="Aurora Custom colour editor"><br>
       <sub>Or build your own with Aurora Custom</sub>
     </td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="screenshots/toast-example.png" alt="Aurora toast notification in action"><br>
+  <img src="screenshots/toast-example.png?v=1" alt="Aurora toast notification in action"><br>
   <sub>The Aurora Glow toast — animated gradient border, glow halo, and drifting curtains</sub>
 </p>
 
