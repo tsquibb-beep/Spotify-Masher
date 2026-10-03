@@ -110,7 +110,9 @@ public partial class MainWindow : Window
 
         LoadNotificationSettings(config.ToastSettings);
         LoadStyleSettings(config.ToastSettings.Theme);
+        _loadingStyleSettings = true;   // set the slider without popping a preview at startup
         StyleScale.Value = Math.Clamp(config.ToastSettings.Scale, StyleScale.Minimum, StyleScale.Maximum);
+        _loadingStyleSettings = false;
         SyncStyleButtonEnabled();
 
         AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
@@ -623,6 +625,10 @@ public partial class MainWindow : Window
         // Fires during InitializeComponent (Value="1") before the label exists.
         if (StyleScaleLabel is null) return;
         StyleScaleLabel.Text = $"{Math.Round(e.NewValue * 100)}%";
+
+        // Live preview while adjusting — one preview window that resizes, not one per tick.
+        if (!_loadingStyleSettings && StyleSection.Visibility == Visibility.Visible)
+            App.ToastService.PreviewScale(BuildActiveTheme(), e.NewValue);
     }
 
     private void NotifEnabled_Checked(object sender, RoutedEventArgs e)

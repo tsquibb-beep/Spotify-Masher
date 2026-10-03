@@ -51,12 +51,34 @@ public class ToastService(ConfigService configService)
 
             var payload = new ToastPayload("Preview toast notification", LoadLogoBytes(),
                                            "Track Name", "Artist Name", "Album Name", Heading: "▶ Playing");
-            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, theme, scale);
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, theme, scale)
+            {
+                IsPreview = true,
+            };
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.Closed += (_, _) => { if (_current == toast) _current = null; };
             _current = toast;
             toast.Show();
         });
+    }
+
+    // Live resize for the Toast Size slider: grows/shrinks the preview already on screen (and keeps it
+    // alive a few more seconds) rather than spawning a new one per slider tick. Opens one if none is up.
+    public void PreviewScale(ToastTheme theme, double scale)
+    {
+        bool resized = Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (_current is not { IsPreview: true, IsDismissing: false } toast) return false;
+
+            toast.SetScale(scale);
+            toast.UpdateLayout();
+            var (corner, offsetX, offsetY, pinnedX, pinnedY) = ResolvePosition(configService.Load().ToastSettings);
+            PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
+            toast.KeepAlive();
+            return true;
+        });
+
+        if (!resized) ShowPreview(theme, scale);
     }
 
     private static byte[]? LoadLogoBytes()

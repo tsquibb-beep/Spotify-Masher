@@ -20,9 +20,7 @@ public partial class ToastWindow : Window
         double scale = 1.0)
     {
         InitializeComponent();
-        // LayoutTransform (not RenderTransform) so SizeToContent and corner positioning see the scaled size.
-        if (scale > 1.0)
-            ToastRoot.LayoutTransform = new ScaleTransform(scale, scale);
+        SetScale(scale);
         Topmost = alwaysOnTop;
         Opacity = 0;
         _durationMs = durationMs;
@@ -351,6 +349,29 @@ public partial class ToastWindow : Window
         catch { return fallback; }
     }
 
+    // True for Toast Style previews — lets the slider resize a live preview instead of spawning new ones.
+    public bool IsPreview { get; init; }
+    public bool IsDismissing => _closing;
+
+    // LayoutTransform (not RenderTransform) so SizeToContent and corner positioning see the scaled size.
+    public void SetScale(double scale)
+    {
+        ToastRoot.LayoutTransform = scale > 1.0 ? new ScaleTransform(scale, scale) : Transform.Identity;
+    }
+
+    // Restarts the dismiss countdown (at least 3s) so a preview stays up while the user is adjusting it.
+    public void KeepAlive()
+    {
+        if (_closing) return;
+        _dismissTimer.Stop();
+        _dismissTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(_durationMs, 3000));
+        _dismissTimer.Start();
+
+        // Time-based borders would otherwise sit finished/empty — restart them. Looping ones carry on.
+        if (_theme.ActionBorderType is "Bottom Bar Drain" or "Fill from Centre" or "Full Border Trace")
+            StartActionBorderAnimation(_dismissTimer.Interval);
+    }
+
     public new void Show()
     {
         base.Show();
@@ -492,9 +513,9 @@ public partial class ToastWindow : Window
         SweepHighlight.BeginAnimation(OpacityProperty, pulse);
     }
 
-    private void StartActionBorderAnimation()
+    private void StartActionBorderAnimation(TimeSpan? overrideDuration = null)
     {
-        var duration = TimeSpan.FromMilliseconds(_durationMs);
+        var duration = overrideDuration ?? TimeSpan.FromMilliseconds(_durationMs);
 
         switch (_theme.ActionBorderType)
         {
