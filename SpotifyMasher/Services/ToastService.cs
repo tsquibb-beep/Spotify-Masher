@@ -6,9 +6,13 @@ using SpotifyMasher.Models;
 
 namespace SpotifyMasher.Services;
 
+// Where a toast goes: pinned top-left if PinnedX/Y are set, otherwise corner + offset.
+public record struct Placement(string Corner, int OffsetX, int OffsetY, double? PinnedX, double? PinnedY);
+
 public class ToastService(ConfigService configService)
 {
     private ToastWindow? _current;
+    private ToastWindow? _drag;
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
@@ -39,13 +43,16 @@ public class ToastService(ConfigService configService)
 
     // Shows a one-off preview of the given theme at the user's configured position, using the
     // app logo as stand-in album art. Ignores the Enabled flag (the user explicitly asked for it).
-    public void ShowPreview(ToastTheme theme, double scale)
+    // Placement comes from the (possibly unsaved) Notifications UI. While the drag handle is up it
+    // already is the preview, so nothing extra is shown.
+    public void ShowPreview(ToastTheme theme, double scale, Placement placement)
     {
         var settings = configService.Load().ToastSettings;
-        var (corner, offsetX, offsetY, pinnedX, pinnedY) = ResolvePosition(settings);
+        var (corner, offsetX, offsetY, pinnedX, pinnedY) = placement;
 
         Application.Current.Dispatcher.Invoke(() =>
         {
+            if (_drag is not null) return;
             _current?.ForceClose();
             _current = null;
 
@@ -64,21 +71,61 @@ public class ToastService(ConfigService configService)
 
     // Live resize for the Toast Size slider: grows/shrinks the preview already on screen (and keeps it
     // alive a few more seconds) rather than spawning a new one per slider tick. Opens one if none is up.
-    public void PreviewScale(ToastTheme theme, double scale)
+    // The drag handle, if up, is resized in place (it keeps its top-left where the user dragged it).
+    public void PreviewScale(ToastTheme theme, double scale, Placement placement)
     {
         bool resized = Application.Current.Dispatcher.Invoke(() =>
         {
+            if (_drag is not null)
+            {
+                _drag.SetScale(scale);
+                return true;
+            }
+
             if (_current is not { IsPreview: true, IsDismissing: false } toast) return false;
 
             toast.SetScale(scale);
             toast.UpdateLayout();
-            var (corner, offsetX, offsetY, pinnedX, pinnedY) = ResolvePosition(configService.Load().ToastSettings);
+            var (corner, offsetX, offsetY, pinnedX, pinnedY) = placement;
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.KeepAlive();
             return true;
         });
 
-        if (!resized) ShowPreview(theme, scale);
+        if (!resized) ShowPreview(theme, scale, placement);
+    }
+
+    // Opens the draggable real-toast handle used to set a freehand position. Stays up until
+    // CloseDragHandle (Save/Cancel in the main window). Replaces any existing handle or preview.
+    public ToastWindow ShowDragHandle(ToastTheme theme, double scale, Placement placement)
+    {
+        var settings = configService.Load().ToastSettings;
+        var (corner, offsetX, offsetY, pinnedX, pinnedY) = placement;
+
+        return Application.Current.Dispatcher.Invoke(() =>
+        {
+            CloseDragHandle();
+            _current?.ForceClose();
+            _current = null;
+
+            var payload = new ToastPayload("Drag me into position", LoadLogoBytes(),
+                                           "Track Name", "Artist Name", "Album Name",
+                                           Heading: "✥ Drag into place, then Save");
+            var toast = new ToastWindow(payload, settings.DurationMs, alwaysOnTop: true, theme, scale)
+            {
+                IsDragHandle = true,
+            };
+            PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
+            _drag = toast;
+            toast.Show();
+            return toast;
+        });
+    }
+
+    public void CloseDragHandle()
+    {
+        _drag?.ForceClose();
+        _drag = null;
     }
 
     private static byte[]? LoadLogoBytes()

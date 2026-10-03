@@ -353,6 +353,10 @@ public partial class ToastWindow : Window
     public bool IsPreview { get; init; }
     public bool IsDismissing => _closing;
 
+    // Drag handle for setting the toast position: the real toast, but hit-testable, draggable and
+    // never auto-dismissed. Its Left/Top is exactly what gets stored as PinnedX/PinnedY.
+    public bool IsDragHandle { get; init; }
+
     // LayoutTransform (not RenderTransform) so SizeToContent and corner positioning see the scaled size.
     public void SetScale(double scale)
     {
@@ -362,7 +366,7 @@ public partial class ToastWindow : Window
     // Restarts the dismiss countdown (at least 3s) so a preview stays up while the user is adjusting it.
     public void KeepAlive()
     {
-        if (_closing) return;
+        if (_closing || IsDragHandle) return;
         _dismissTimer.Stop();
         _dismissTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(_durationMs, 3000));
         _dismissTimer.Start();
@@ -374,10 +378,18 @@ public partial class ToastWindow : Window
 
     public new void Show()
     {
+        if (IsDragHandle)
+        {
+            IsHitTestVisible = true;
+            Topmost = true;
+            Cursor = System.Windows.Input.Cursors.SizeAll;
+            MouseLeftButtonDown += (_, _) => DragMove();
+        }
+
         base.Show();
         AnimateIn();
         StartFxAnimations();
-        _dismissTimer.Start();
+        if (!IsDragHandle) _dismissTimer.Start();
     }
 
     public void ForceClose()

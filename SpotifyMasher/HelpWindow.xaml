@@ -219,16 +219,16 @@
                         <TextBlock Style="{StaticResource BodyText}"
                                    Text="• Corner + offset — pick a screen corner and set how many pixels in from the edge." />
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
-                                   Text="• Freehand — click Drag to set position and drag the preview to wherever you want." />
+                                   Text="• Freehand — click Drag to set position, drag the toast to wherever you want, then click Save Notifications (or Cancel)." />
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
-                                   Text="Per-app overrides let you set a different toast position when a specific app is in focus. Add the process name (e.g. chrome.exe) and use the drag picker to set its position." />
+                                   Text="Per-app overrides let you set a different toast position when a specific app is in focus. Add the process name (e.g. chrome.exe) and click 📍 to drag its toast into place." />
 
-                        <!-- Toast Style &amp; Presets -->
-                        <TextBlock Style="{StaticResource SectionHead}" Text="Toast Style" />
+                        <!-- Toast Appearance &amp; Presets -->
+                        <TextBlock Style="{StaticResource SectionHead}" Text="Toast Appearance" />
                         <TextBlock Style="{StaticResource BodyText}">
-                            Open <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Toast Style</Run>,
+                            In <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Notifications</Run>,
                             pick a look from the <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Preset</Run>
-                            dropdown, then click <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Save Style</Run>.
+                            dropdown, then click <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Save Notifications</Run>.
                         </TextBlock>
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0">
                             To use your own colours, choose <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Aurora Custom</Run>,
@@ -236,7 +236,7 @@
                             colour picker, or type a hex code.
                         </TextBlock>
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
-                                   Text="Click Preview Toast to see your choice before saving, or Reset to Defaults to start over." />
+                                   Text="Toast Size scales the toast up to 300% — it previews live as you drag the slider. Click Preview Toast to see your choice before saving, or Reset to Defaults to start over." />
 
                         <!-- Tips -->
                         <TextBlock Style="{StaticResource SectionHead}" Text="Tips" />

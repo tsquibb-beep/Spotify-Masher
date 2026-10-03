@@ -71,6 +71,11 @@ public partial class MainWindow : Window
     private bool _loadingSettings;
     private bool _loadingStyleSettings;
 
+    // Draggable real-toast handle for setting a freehand position. _dragRule is the per-process
+    // rule being positioned, or null for the global position.
+    private ToastWindow? _dragToast;
+    private ProcessToastRule? _dragRule;
+
     public bool IsAuthenticated
     {
         get => _isAuthenticated;
@@ -108,12 +113,7 @@ public partial class MainWindow : Window
         foreach (var b in config.Bindings)
             _bindings.Add(b);
 
-        LoadNotificationSettings(config.ToastSettings);
-        LoadStyleSettings(config.ToastSettings.Theme);
-        _loadingStyleSettings = true;   // set the slider without popping a preview at startup
-        StyleScale.Value = Math.Clamp(config.ToastSettings.Scale, StyleScale.Minimum, StyleScale.Maximum);
-        _loadingStyleSettings = false;
-        SyncStyleButtonEnabled();
+        LoadAllToastSettings(config.ToastSettings);
 
         AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
 
@@ -252,24 +252,23 @@ public partial class MainWindow : Window
     private void SetHotkeysVisible(bool visible) =>
         SetActivePanel(visible ? Panel.Hotkeys : Panel.None);
 
-    private enum Panel { None, Hotkeys, Notifications, Style }
+    private enum Panel { None, Hotkeys, Notifications }
 
     // Accordion: at most one panel open at a time. The other panels' entry buttons are hidden
     // while a panel is open; only the active panel's expanded (Save) buttons show.
     private void SetActivePanel(Panel panel)
     {
+        if (panel != Panel.Notifications) CloseDragToast();
+
         HotkeySection.Visibility = panel == Panel.Hotkeys       ? Visibility.Visible : Visibility.Collapsed;
         NotifSection.Visibility  = panel == Panel.Notifications ? Visibility.Visible : Visibility.Collapsed;
-        StyleSection.Visibility  = panel == Panel.Style         ? Visibility.Visible : Visibility.Collapsed;
 
         bool none = panel == Panel.None;
         HotkeyCollapsedButtons.Visibility = none ? Visibility.Visible : Visibility.Collapsed;
         NotifCollapsedButton.Visibility   = none ? Visibility.Visible : Visibility.Collapsed;
-        StyleCollapsedButton.Visibility   = none ? Visibility.Visible : Visibility.Collapsed;
 
         HotkeyExpandedButtons.Visibility = panel == Panel.Hotkeys       ? Visibility.Visible : Visibility.Collapsed;
         NotifExpandedButton.Visibility   = panel == Panel.Notifications ? Visibility.Visible : Visibility.Collapsed;
-        StyleExpandedButton.Visibility   = panel == Panel.Style         ? Visibility.Visible : Visibility.Collapsed;
     }
 
     internal void ToggleDebugLog()
@@ -298,6 +297,7 @@ public partial class MainWindow : Window
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         e.Cancel = true;
+        CloseDragToast();
         Hide();
     }
 
@@ -340,6 +340,7 @@ public partial class MainWindow : Window
     private void ModeCorner_Checked(object sender, RoutedEventArgs e)
     {
         if (_loadingSettings) return;
+        if (_dragToast is not null && _dragRule is null) CloseDragToast();
         _pendingPinnedX = null;
         _pendingPinnedY = null;
         ApplyPositionMode(freehand: false);
@@ -385,9 +386,27 @@ public partial class MainWindow : Window
         return $"{(isTop ? "top" : "bottom")}-{(isLeft ? "left" : "right")}";
     }
 
+    // Notifications + Toast Style live on one page; this loads both (startup and Cancel).
+    private void LoadAllToastSettings(Models.ToastSettings s)
+    {
+        LoadNotificationSettings(s);
+        LoadStyleSettings(s.Theme);
+        _loadingStyleSettings = true;   // set the slider without popping a preview
+        StyleScale.Value = Math.Clamp(s.Scale, StyleScale.Minimum, StyleScale.Maximum);
+        _loadingStyleSettings = false;
+        SyncAppearanceEnabled();
+    }
+
+    private void CancelNotifications_Click(object sender, RoutedEventArgs e)
+    {
+        SetActivePanel(Panel.None);   // also closes the drag handle
+        LoadAllToastSettings(App.ConfigService.Load().ToastSettings);
+        AppLogger.Log("Notification changes cancelled");
+    }
+
     private void SaveNotifications_Click(object sender, RoutedEventArgs e)
     {
-        ToggleNotifications_Click(sender, e);
+        SetActivePanel(Panel.None);   // closes the drag handle — its position is already recorded
 
         var config = App.ConfigService.Load();
         var s = config.ToastSettings;
@@ -401,9 +420,11 @@ public partial class MainWindow : Window
         s.ProcessRules = [.. _processRules];
         s.PinnedX = _pendingPinnedX;
         s.PinnedY = _pendingPinnedY;
+        s.Theme = BuildActiveTheme();
+        s.Scale = StyleScale.Value;
 
         App.ConfigService.Save(config);
-        AppLogger.Log($"Notification settings saved — pinned={s.PinnedX?.ToString("F0") ?? "no"} corner={s.Corner} enabled={s.Enabled} rules={s.ProcessRules.Count}");
+        AppLogger.Log($"Notification settings saved — pinned={s.PinnedX?.ToString("F0") ?? "no"} corner={s.Corner} enabled={s.Enabled} rules={s.ProcessRules.Count} preset={s.Theme.PresetName} scale={s.Scale:P0}");
     }
 
     private void AddProcessRule_Click(object sender, RoutedEventArgs e)
@@ -417,51 +438,69 @@ public partial class MainWindow : Window
             _processRules.Remove(rule);
     }
 
-    private void SetGlobalPosition_Click(object sender, RoutedEventArgs e)
-    {
-        var (startLeft, startTop) = ResolvePickerStart(
-            NotifCorner.SelectedItem?.ToString() ?? "bottom-right",
-            int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20,
-            int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20,
-            _pendingPinnedX, _pendingPinnedY);
-
-        var picker = new PositionPickerWindow(startLeft, startTop) { Owner = this };
-        if (picker.ShowDialog() != true) return;
-
-        _pendingPinnedX = picker.Result.X;
-        _pendingPinnedY = picker.Result.Y;
-        UpdateCornerIndicator(ComputeCornerFromPosition(_pendingPinnedX.Value, _pendingPinnedY.Value));
-    }
+    private void SetGlobalPosition_Click(object sender, RoutedEventArgs e) => OpenDragToast(null);
 
     private void SetProcessRulePosition_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: Models.ProcessToastRule rule }) return;
-
-        var (startLeft, startTop) = ResolvePickerStart(
-            rule.Corner, rule.OffsetX, rule.OffsetY, rule.PinnedX, rule.PinnedY);
-
-        var picker = new PositionPickerWindow(startLeft, startTop) { Owner = this };
-        if (picker.ShowDialog() != true) return;
-
-        rule.PinnedX = picker.Result.X;
-        rule.PinnedY = picker.Result.Y;
+        if (sender is Button { Tag: Models.ProcessToastRule rule })
+            OpenDragToast(rule);
     }
 
-    private static (double Left, double Top) ResolvePickerStart(
-        string corner, int offsetX, int offsetY, double? pinnedX, double? pinnedY)
-    {
-        if (pinnedX is double px && pinnedY is double py)
-            return (px, py);
+    // Where the global toast would go with the current (unsaved) UI settings.
+    private Services.Placement GetUiPlacement() => new(
+        NotifCorner.SelectedItem?.ToString() ?? "bottom-right",
+        int.TryParse(NotifOffsetX.Text, out var ox) ? ox : 20,
+        int.TryParse(NotifOffsetY.Text, out var oy) ? oy : 20,
+        ModeFreehand.IsChecked == true ? _pendingPinnedX : null,
+        ModeFreehand.IsChecked == true ? _pendingPinnedY : null);
 
-        const double w = 280, h = 60;
-        var area = System.Windows.SystemParameters.WorkArea;
-        return corner switch
+    // Shows the real toast (current style + size) as a drag handle. Its position is recorded live
+    // as it moves; Save keeps it, Cancel throws it away.
+    private void OpenDragToast(Models.ProcessToastRule? rule)
+    {
+        var placement = rule is null
+            ? GetUiPlacement()
+            : new Services.Placement(rule.Corner, rule.OffsetX, rule.OffsetY, rule.PinnedX, rule.PinnedY);
+
+        CloseDragToast();
+        _dragRule  = rule;
+        _dragToast = App.ToastService.ShowDragHandle(BuildActiveTheme(), StyleScale.Value, placement);
+        _dragToast.LocationChanged += DragToast_LocationChanged;
+        RecordDragPosition();
+    }
+
+    // Re-opens the handle in place after a style change so it keeps matching the real toast.
+    private void RefreshDragToast()
+    {
+        if (_dragToast is not null) OpenDragToast(_dragRule);
+    }
+
+    private void CloseDragToast()
+    {
+        if (_dragToast is null) return;
+        _dragToast.LocationChanged -= DragToast_LocationChanged;
+        App.ToastService.CloseDragHandle();
+        _dragToast = null;
+        _dragRule  = null;
+    }
+
+    private void DragToast_LocationChanged(object? sender, EventArgs e) => RecordDragPosition();
+
+    private void RecordDragPosition()
+    {
+        if (_dragToast is null) return;
+        double x = _dragToast.Left, y = _dragToast.Top;
+
+        if (_dragRule is not null)
         {
-            "top-left"    => (area.Left + offsetX,        area.Top + offsetY),
-            "top-right"   => (area.Right - w - offsetX,   area.Top + offsetY),
-            "bottom-left" => (area.Left + offsetX,         area.Bottom - h - offsetY),
-            _             => (area.Right - w - offsetX,   area.Bottom - h - offsetY),
-        };
+            _dragRule.PinnedX = x;
+            _dragRule.PinnedY = y;
+            return;
+        }
+
+        _pendingPinnedX = x;
+        _pendingPinnedY = y;
+        UpdateCornerIndicator(ComputeCornerFromPosition(x, y));
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -508,25 +547,6 @@ public partial class MainWindow : Window
         bool hideColor2 = StyleBgEffect.SelectedItem?.ToString() == "Solid";
         StyleBgColor2Label.Visibility = hideColor2 ? Visibility.Collapsed : Visibility.Visible;
         StyleBgColor2.Visibility      = hideColor2 ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private void ToggleStyle_Click(object sender, RoutedEventArgs e)
-    {
-        bool open = StyleSection.Visibility == Visibility.Visible;
-        SetActivePanel(open ? Panel.None : Panel.Style);
-    }
-
-    private void SaveStyle_Click(object sender, RoutedEventArgs e)
-    {
-        var config = App.ConfigService.Load();
-        var t = BuildActiveTheme();
-        config.ToastSettings.Theme = t;
-        config.ToastSettings.Scale = StyleScale.Value;
-
-        App.ConfigService.Save(config);
-        AppLogger.Log($"Toast style saved — preset={t.PresetName} border={t.ActionBorderType} scale={StyleScale.Value:P0}");
-
-        ToggleStyle_Click(sender, e);
     }
 
     // The theme to preview/save. A chosen preset returns its canonical object; "Aurora Custom"
@@ -591,32 +611,34 @@ public partial class MainWindow : Window
         {
             // Reveal the custom editor; the pickers keep whatever palette was last loaded as a seed.
             AuroraCustomPanel.Visibility = Visibility.Visible;
+            RefreshDragToast();
             return;
         }
 
         // Apply the chosen preset — this also populates the custom pickers and hides the panel.
         // Re-entrancy guard via _loadingStyleSettings stops this reverting to "Aurora Custom".
         LoadStyleSettings(Models.ToastPresets.Get(name));
+        RefreshDragToast();
     }
 
     private void PreviewToast_Click(object sender, RoutedEventArgs e)
     {
         // Shown at the user's configured position, with the app logo as stand-in album art.
-        App.ToastService.ShowPreview(BuildActiveTheme(), StyleScale.Value);
+        App.ToastService.ShowPreview(BuildActiveTheme(), StyleScale.Value, GetUiPlacement());
         AppLogger.Log("Toast style preview shown");
     }
 
-    private void SyncStyleButtonEnabled()
+    private void SyncAppearanceEnabled()
     {
         bool enabled = NotifEnabled.IsChecked == true;
-        StyleToggleButton.IsEnabled = enabled;
-        StyleToggleButton.Opacity   = enabled ? 1.0 : 0.4;
+        AppearancePanel.IsEnabled = enabled;
     }
 
     private void ResetStyle_Click(object sender, RoutedEventArgs e)
     {
         LoadStyleSettings(Models.ToastPresets.Get(Models.ToastPresets.DefaultName));
         StyleScale.Value = 1.0;
+        RefreshDragToast();
         AppLogger.Log("Toast style reset to defaults");
     }
 
@@ -627,27 +649,19 @@ public partial class MainWindow : Window
         StyleScaleLabel.Text = $"{Math.Round(e.NewValue * 100)}%";
 
         // Live preview while adjusting — one preview window that resizes, not one per tick.
-        if (!_loadingStyleSettings && StyleSection.Visibility == Visibility.Visible)
-            App.ToastService.PreviewScale(BuildActiveTheme(), e.NewValue);
+        if (!_loadingStyleSettings && NotifSection.Visibility == Visibility.Visible)
+            App.ToastService.PreviewScale(BuildActiveTheme(), e.NewValue, GetUiPlacement());
     }
 
     private void NotifEnabled_Checked(object sender, RoutedEventArgs e)
     {
         if (_loadingSettings) return;
-        SyncStyleButtonEnabled();
+        SyncAppearanceEnabled();
     }
 
     private void NotifEnabled_Unchecked(object sender, RoutedEventArgs e)
     {
         if (_loadingSettings) return;
-        SyncStyleButtonEnabled();
-
-        // Collapse the style section if it was open
-        if (StyleSection.Visibility == Visibility.Visible)
-        {
-            StyleSection.Visibility       = Visibility.Collapsed;
-            StyleCollapsedButton.Visibility = Visibility.Visible;
-            StyleExpandedButton.Visibility  = Visibility.Collapsed;
-        }
+        SyncAppearanceEnabled();
     }
 }
