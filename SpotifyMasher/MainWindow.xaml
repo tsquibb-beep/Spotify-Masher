@@ -60,7 +60,7 @@
             <RowDefinition Height="Auto" />   <!-- Hotkey section (collapsible) -->
             <RowDefinition Height="Auto" />   <!-- Notification settings (collapsible) -->
             <RowDefinition Height="Auto" />   <!-- Footer -->
-            <RowDefinition Height="Auto" />   <!-- Debug log (Ctrl+Shift+` to toggle) -->
+            <RowDefinition Height="Auto" />   <!-- Debug log (toggled from the tray menu) -->
         </Grid.RowDefinitions>
 
         <!-- ══ Header ══ -->
@@ -548,7 +548,7 @@
                     Click="Help_Click" ToolTip="Help &amp; About" />
         </Grid>
 
-        <!-- ══ Debug Log (Ctrl+Shift+` to toggle, or via tray menu) ══ -->
+        <!-- ══ Debug Log (toggled from the tray menu) ══ -->
         <Grid x:Name="DebugSection" Grid.Row="5" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

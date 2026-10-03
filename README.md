@@ -36,9 +36,14 @@ After a one-time login it runs silently in the background, refreshing its Spotif
 
 ## Toast notifications
 
-When you trigger an action, Spotify Masher shows a customisable toast. Pick from the **Aurora** preset family, or design your own with **Aurora Custom** — then preview it live at its real position on screen before saving.
+When you trigger an action, Spotify Masher shows a customisable toast. Everything about it — look, size and position — lives on one **Notifications** page:
 
-![Spotify Masher Toast Style pane](screenshots/toasts.png?v=1)
+- **Preset** — pick from the **Aurora** family, or design your own with **Aurora Custom**. Use the eyedropper to grab any colour on your screen, so the toast can match your desktop theme.
+- **Toast Size** — scale the toast up to 300% for big or ultrawide monitors. It previews live as you drag the slider.
+- **Position** — snap to a corner with an offset, or click **Drag to set position** and move the real toast to exactly where you want it.
+- **Save Notifications** keeps your changes; **Cancel** throws them away.
+
+![Spotify Masher toast appearance settings](screenshots/toasts.png?v=1)
 
 <table>
   <tr>
@@ -63,15 +68,18 @@ When you trigger an action, Spotify Masher shows a customisable toast. Pick from
 ## Features
 
 - **Global hotkeys** — fire from any window, even fullscreen games
-- **Play / Pause** the current track
+- **Play / Pause** the current track — toast shows cover art and track details, marked Playing or Paused
 - **Next / Previous** track — toast shows the new track name and artist
 - **Seek** forward or backward by a configurable number of seconds
 - **Volume** up or down
 - **Like** the current track (adds to Liked Songs)
 - **Add to Playlist** — paste any Spotify playlist URL, URI, or ID
 - **Show Current Track** — toast with track name, artist, album, and cover art
-- **Toast notifications** — customisable position, duration, and per-app overrides
+- **Toast notifications** — customisable position, duration, and per-app overrides, all on one settings page
 - **Aurora toast themes** — a preset family (Aurora Masher, ADHD, Twilight, Lagoon, Ember, Frost) with animated glow borders and drifting aurora curtains, plus an **Aurora Custom** editor to pick your own colours
+- **Eyedropper** — pick any colour on your screen for Aurora Custom
+- **Toast size** — scale toasts from 100% to 300%, with live preview as you adjust
+- **Drag to position** — drag the real toast into place, so it lands exactly where you dropped it
 - **Live preview** — preview your toast at its real on-screen position before saving
 - Starts silently in the system tray on launch
 - Silent token refresh — no re-login after the first time

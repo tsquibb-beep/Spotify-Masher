@@ -99,11 +99,6 @@ public partial class MainWindow : Window
             LogBox.ScrollToEnd();
         });
 
-        // Use AddHandler with handledEventsToo=true so the debug toggle key fires
-        // even when a child element (DataGrid, TextBox) has consumed the event.
-        AddHandler(UIElement.PreviewKeyDownEvent,
-            new KeyEventHandler(HandleGlobalKey), handledEventsToo: true);
-
         AppLogger.Log("App started");
 
         var config = App.ConfigService.Load();
@@ -125,23 +120,6 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
         DwmHelper.SetGreenTitleBar(this);
-    }
-
-    private void HandleGlobalKey(object sender, KeyEventArgs e)
-    {
-        // Ctrl+Shift+` (backtick/grave, Key.OemTilde, VK_OEM_3) toggles the debug log.
-        // Use HasFlag so CapsLock or NumLock don't break the check.
-        bool ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-        bool shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-        bool tilde = e.Key == Key.OemTilde;
-
-        if (ctrl && shift && tilde)
-        {
-            DebugSection.Visibility = DebugSection.Visibility == Visibility.Visible
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            e.Handled = true;
-        }
     }
 
     private void UpdateAuthUi()

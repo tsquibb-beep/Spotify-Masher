@@ -134,7 +134,7 @@
                             <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">+ Add Hotkey</Run>.
                             Click in the Keybinding cell and press your key combo.
                             Choose an action, enter a parameter if needed, then click
-                            <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Save</Run>.
+                            <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Save Hotkeys</Run>.
                         </TextBlock>
 
                         <!-- Action Reference -->
@@ -168,7 +168,7 @@
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource TblCell}" Text="Play / Pause" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource TblCellMuted}" Text="(none)" />
-                                <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource TblCell}" Text="Toggle playback. Wakes Spotify on this device if idle." />
+                                <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource TblCell}" Text="Toggle playback and show the track with Playing / Paused. Wakes Spotify on this device if idle." />
 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource TblCell}" Text="Change Volume" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource TblCellMuted}" Text="+5 or -10" />
@@ -213,7 +213,7 @@
                         <!-- Toast Notifications -->
                         <TextBlock Style="{StaticResource SectionHead}" Text="Toast Notifications" />
                         <TextBlock Style="{StaticResource BodyText}"
-                                   Text="Each hotkey row has a Show Toast toggle — enable it to see a notification when that action fires. Configure toasts in the Notifications section of the main window." />
+                                   Text="Each hotkey row has a Show Toast toggle — enable it to see a notification when that action fires. Everything about toasts — look, size and position — lives on the Notifications page. Save Notifications keeps your changes; Cancel throws them away." />
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,2"
                                    Text="Two position modes:" />
                         <TextBlock Style="{StaticResource BodyText}"
@@ -248,7 +248,7 @@
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
                                    Text="• Hotkeys are global — they work even when Spotify is in the background." />
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
-                                   Text="• Ctrl+Shift+` toggles the debug log." />
+                                   Text="• Something not working? Debug Log in the tray menu shows what each hotkey did." />
 
                     </StackPanel>
                 </ScrollViewer>
