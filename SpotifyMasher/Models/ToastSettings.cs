@@ -16,6 +16,10 @@ public class ToastSettings
     public double? PinnedX { get; set; } = null;
     public double? PinnedY { get; set; } = null;
 
+    // Toast size multiplier (1.0 = 100%). Lives here rather than on Theme because selecting a
+    // preset swaps in its canonical ToastTheme object.
+    public double Scale { get; set; } = 1.0;
+
     public ToastTheme Theme { get; set; } = ToastPresets.Get(ToastPresets.DefaultName);
 }
 

@@ -16,9 +16,13 @@ public partial class ToastWindow : Window
     private readonly ToastTheme _theme;
     private bool _closing;
 
-    public ToastWindow(ToastPayload payload, int durationMs, bool alwaysOnTop, ToastTheme? theme = null)
+    public ToastWindow(ToastPayload payload, int durationMs, bool alwaysOnTop, ToastTheme? theme = null,
+        double scale = 1.0)
     {
         InitializeComponent();
+        // LayoutTransform (not RenderTransform) so SizeToContent and corner positioning see the scaled size.
+        if (scale > 1.0)
+            ToastRoot.LayoutTransform = new ScaleTransform(scale, scale);
         Topmost = alwaysOnTop;
         Opacity = 0;
         _durationMs = durationMs;
@@ -46,6 +50,12 @@ public partial class ToastWindow : Window
         TrackText.Text  = payload.TrackName  ?? string.Empty;
         ArtistText.Text = payload.ArtistName ?? string.Empty;
         AlbumText.Text  = payload.AlbumName  ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(payload.Heading))
+        {
+            HeadingText.Text       = payload.Heading;
+            HeadingText.Visibility = Visibility.Visible;
+        }
 
         if (string.IsNullOrEmpty(ArtistText.Text)) ArtistText.Visibility = Visibility.Collapsed;
         if (string.IsNullOrEmpty(AlbumText.Text))  AlbumText.Visibility  = Visibility.Collapsed;
@@ -134,6 +144,7 @@ public partial class ToastWindow : Window
         TrackText.Foreground   = msg;
         ArtistText.Foreground  = artist;
         AlbumText.Foreground   = album;
+        HeadingText.Foreground = album;
     }
 
     private void ApplyActionBorder(ToastTheme t)

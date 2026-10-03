@@ -110,6 +110,7 @@ public partial class MainWindow : Window
 
         LoadNotificationSettings(config.ToastSettings);
         LoadStyleSettings(config.ToastSettings.Theme);
+        StyleScale.Value = Math.Clamp(config.ToastSettings.Scale, StyleScale.Minimum, StyleScale.Maximum);
         SyncStyleButtonEnabled();
 
         AppLogger.Log($"Config loaded: ClientId={(!string.IsNullOrEmpty(config.ClientId) ? "set" : "empty")} Bindings={config.Bindings.Count}");
@@ -518,9 +519,10 @@ public partial class MainWindow : Window
         var config = App.ConfigService.Load();
         var t = BuildActiveTheme();
         config.ToastSettings.Theme = t;
+        config.ToastSettings.Scale = StyleScale.Value;
 
         App.ConfigService.Save(config);
-        AppLogger.Log($"Toast style saved — preset={t.PresetName} border={t.ActionBorderType}");
+        AppLogger.Log($"Toast style saved — preset={t.PresetName} border={t.ActionBorderType} scale={StyleScale.Value:P0}");
 
         ToggleStyle_Click(sender, e);
     }
@@ -598,7 +600,7 @@ public partial class MainWindow : Window
     private void PreviewToast_Click(object sender, RoutedEventArgs e)
     {
         // Shown at the user's configured position, with the app logo as stand-in album art.
-        App.ToastService.ShowPreview(BuildActiveTheme());
+        App.ToastService.ShowPreview(BuildActiveTheme(), StyleScale.Value);
         AppLogger.Log("Toast style preview shown");
     }
 
@@ -612,7 +614,15 @@ public partial class MainWindow : Window
     private void ResetStyle_Click(object sender, RoutedEventArgs e)
     {
         LoadStyleSettings(Models.ToastPresets.Get(Models.ToastPresets.DefaultName));
+        StyleScale.Value = 1.0;
         AppLogger.Log("Toast style reset to defaults");
+    }
+
+    private void StyleScale_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // Fires during InitializeComponent (Value="1") before the label exists.
+        if (StyleScaleLabel is null) return;
+        StyleScaleLabel.Text = $"{Math.Round(e.NewValue * 100)}%";
     }
 
     private void NotifEnabled_Checked(object sender, RoutedEventArgs e)

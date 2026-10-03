@@ -28,7 +28,8 @@ public class ToastService(ConfigService configService)
             _current?.ForceClose();
             _current = null;
 
-            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, settings.Theme);
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, settings.Theme,
+                                        settings.Scale);
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.Closed += (_, _) => { if (_current == toast) _current = null; };
             _current = toast;
@@ -38,7 +39,7 @@ public class ToastService(ConfigService configService)
 
     // Shows a one-off preview of the given theme at the user's configured position, using the
     // app logo as stand-in album art. Ignores the Enabled flag (the user explicitly asked for it).
-    public void ShowPreview(ToastTheme theme)
+    public void ShowPreview(ToastTheme theme, double scale)
     {
         var settings = configService.Load().ToastSettings;
         var (corner, offsetX, offsetY, pinnedX, pinnedY) = ResolvePosition(settings);
@@ -49,8 +50,8 @@ public class ToastService(ConfigService configService)
             _current = null;
 
             var payload = new ToastPayload("Preview toast notification", LoadLogoBytes(),
-                                           "Track Name", "Artist Name", "Album Name");
-            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, theme);
+                                           "Track Name", "Artist Name", "Album Name", Heading: "▶ Playing");
+            var toast = new ToastWindow(payload, settings.DurationMs, settings.AlwaysOnTop, theme, scale);
             PositionToast(toast, corner, offsetX, offsetY, pinnedX, pinnedY);
             toast.Closed += (_, _) => { if (_current == toast) _current = null; };
             _current = toast;
@@ -99,18 +100,22 @@ public class ToastService(ConfigService configService)
     private static void PositionToast(ToastWindow toast, string corner, int offsetX, int offsetY,
         double? pinnedX, double? pinnedY)
     {
-        if (pinnedX is double px && pinnedY is double py)
-        {
-            toast.Left = px;
-            toast.Top  = py;
-            return;
-        }
-
         toast.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         toast.Arrange(new Rect(toast.DesiredSize));
 
         var w = toast.DesiredSize.Width  > 0 ? toast.DesiredSize.Width  : 280;
         var h = toast.DesiredSize.Height > 0 ? toast.DesiredSize.Height : 60;
+
+        if (pinnedX is double px && pinnedY is double py)
+        {
+            // The pin is the top-left anchor, so a scaled-up toast grows right/down — nudge it back
+            // inside the virtual desktop if that would push it off the edge.
+            toast.Left = Math.Max(SystemParameters.VirtualScreenLeft,
+                Math.Min(px, SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - w));
+            toast.Top  = Math.Max(SystemParameters.VirtualScreenTop,
+                Math.Min(py, SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - h));
+            return;
+        }
 
         var area = SystemParameters.WorkArea;
 

@@ -88,15 +88,16 @@ public class SpotifyApiService
             startReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(startReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return new ToastPayload("▶ Resumed");
+
+            // Give Spotify a moment to start the new session before asking what's playing.
+            await Task.Delay(600);
+            return await BuildTrackToastAsync("▶ Playing", await GetCurrentTrackInfoAsync(), "▶ Resumed");
         }
 
         var body = await response.Content.ReadAsStringAsync();
         var json = JsonNode.Parse(body);
         var isPlaying = json?["is_playing"]?.GetValue<bool>() ?? false;
-        var trackName = json?["item"]?["name"]?.GetValue<string>();
-        var artistName = json?["item"]?["artists"]?[0]?["name"]?.GetValue<string>();
-        var trackInfo = FormatTrackInfo(trackName, artistName);
+        var track = ParseTrack(json?["item"]);
 
         if (isPlaying)
         {
@@ -105,7 +106,7 @@ public class SpotifyApiService
             pauseReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(pauseReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return new ToastPayload($"⏸ Paused{trackInfo}");
+            return await BuildTrackToastAsync("⏸ Paused", track, "⏸ Paused");
         }
         else
         {
@@ -114,7 +115,7 @@ public class SpotifyApiService
             playReq.Content = new StringContent(string.Empty);
             var r = await _http.SendAsync(playReq);
             AppLogger.Log($"PlayPause: HTTP {(int)r.StatusCode}");
-            return new ToastPayload($"▶ Resumed{trackInfo}");
+            return await BuildTrackToastAsync("▶ Playing", track, "▶ Resumed");
         }
     }
 
@@ -282,12 +283,19 @@ public class SpotifyApiService
     public async Task<ToastPayload?> ShowCurrentTrackAsync()
     {
         AppLogger.Log("ShowCurrentTrack: GET currently playing");
-        var (trackName, artistName, albumName, artUrl) = await GetCurrentTrackInfoAsync();
+        return await BuildTrackToastAsync(null, await GetCurrentTrackInfoAsync(), "♪ Nothing playing");
+    }
 
+    // Rich track toast (art + track/artist/album) with an optional status heading above the track.
+    // Falls back to a plain-text toast when there's no track info (e.g. an ad, or nothing playing).
+    private async Task<ToastPayload> BuildTrackToastAsync(string? heading,
+        (string? trackName, string? artistName, string? albumName, string? artUrl) track, string fallback)
+    {
+        var (trackName, artistName, albumName, artUrl) = track;
         if (string.IsNullOrEmpty(trackName))
         {
-            AppLogger.Log("ShowCurrentTrack: nothing playing");
-            return new ToastPayload("♪ Nothing playing");
+            AppLogger.Log("TrackToast: no track info, using plain toast");
+            return new ToastPayload(fallback);
         }
 
         byte[]? imageBytes = null;
@@ -295,13 +303,13 @@ public class SpotifyApiService
         {
             try
             {
-                AppLogger.Log($"ShowCurrentTrack: downloading album art from {artUrl}");
+                AppLogger.Log($"TrackToast: downloading album art from {artUrl}");
                 imageBytes = await _http.GetByteArrayAsync(artUrl);
-                AppLogger.Log($"ShowCurrentTrack: art downloaded ({imageBytes.Length} bytes)");
+                AppLogger.Log($"TrackToast: art downloaded ({imageBytes.Length} bytes)");
             }
             catch (Exception ex)
             {
-                AppLogger.Log($"ShowCurrentTrack: art download failed — {ex.Message}");
+                AppLogger.Log($"TrackToast: art download failed — {ex.Message}");
             }
         }
 
@@ -310,7 +318,8 @@ public class SpotifyApiService
             ImageBytes: imageBytes,
             TrackName: trackName,
             ArtistName: artistName,
-            AlbumName: albumName);
+            AlbumName: albumName,
+            Heading: heading);
     }
 
     private async Task<(string? trackName, string? artistName, string? albumName, string? artUrl)>
@@ -327,18 +336,25 @@ public class SpotifyApiService
         var body = await response.Content.ReadAsStringAsync();
         if (string.IsNullOrWhiteSpace(body)) return (null, null, null, null);
 
-        var json = JsonNode.Parse(body);
-        var trackName  = json?["item"]?["name"]?.GetValue<string>();
-        var artistName = json?["item"]?["artists"]?[0]?["name"]?.GetValue<string>();
-        var albumName  = json?["item"]?["album"]?["name"]?.GetValue<string>();
+        var track = ParseTrack(JsonNode.Parse(body)?["item"]);
+        AppLogger.Log($"GetCurrentTrackInfo: track='{track.trackName}' artist='{track.artistName}' album='{track.albumName}' art={track.artUrl != null}");
+        return track;
+    }
+
+    // Pulls display info from a track "item" node (same shape in /me/player and /currently-playing).
+    private static (string? trackName, string? artistName, string? albumName, string? artUrl)
+        ParseTrack(JsonNode? item)
+    {
+        var trackName  = item?["name"]?.GetValue<string>();
+        var artistName = item?["artists"]?[0]?["name"]?.GetValue<string>();
+        var albumName  = item?["album"]?["name"]?.GetValue<string>();
 
         // Prefer the 300×300 image (index 1); fall back to largest (index 0)
-        var images = json?["item"]?["album"]?["images"]?.AsArray();
+        var images = item?["album"]?["images"]?.AsArray();
         string? artUrl = null;
         if (images != null && images.Count > 0)
             artUrl = (images.Count > 1 ? images[1] : images[0])?["url"]?.GetValue<string>();
 
-        AppLogger.Log($"GetCurrentTrackInfo: track='{trackName}' artist='{artistName}' album='{albumName}' art={artUrl != null}");
         return (trackName, artistName, albumName, artUrl);
     }
 

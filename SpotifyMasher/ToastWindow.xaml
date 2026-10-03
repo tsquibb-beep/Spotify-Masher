@@ -113,6 +113,15 @@
                             VerticalAlignment="Center"
                             Margin="0,2,0,2">
 
+                    <!-- Status line (e.g. "⏸ Paused") — only shown when the payload carries a Heading -->
+                    <TextBlock x:Name="HeadingText"
+                               Foreground="{StaticResource BrushTextMuted}"
+                               FontFamily="{StaticResource FontLexend}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Visibility="Collapsed"
+                               Margin="0,0,0,3"/>
+
                     <TextBlock x:Name="TrackText"
                                Foreground="{StaticResource BrushText}"
                                FontFamily="{StaticResource FontLexend}"

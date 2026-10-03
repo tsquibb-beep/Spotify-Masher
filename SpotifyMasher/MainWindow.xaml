@@ -472,6 +472,19 @@
                 </StackPanel>
                 <!-- ══ end Manual controls ══ -->
 
+                <!-- Toast size — scales the whole toast (100–300%) -->
+                <TextBlock Text="Toast Size" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextMuted}" Margin="0,4,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <Slider x:Name="StyleScale" Width="220" VerticalAlignment="Center"
+                            Minimum="1" Maximum="3" Value="1"
+                            SmallChange="0.1" LargeChange="0.25"
+                            TickFrequency="0.05" IsSnapToTickEnabled="True"
+                            ValueChanged="StyleScale_ValueChanged"/>
+                    <TextBlock x:Name="StyleScaleLabel" Text="100%" Width="48" Margin="12,0,0,0"
+                               VerticalAlignment="Center" Foreground="{StaticResource BrushText}"/>
+                </StackPanel>
+
                 <!-- Preview / Reset buttons -->
                 <StackPanel Orientation="Horizontal">
                     <Button Content="Preview Toast" Style="{StaticResource GhostButton}"
