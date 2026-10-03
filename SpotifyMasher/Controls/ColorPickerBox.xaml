@@ -6,6 +6,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="36"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
         <TextBox x:Name="HexInput"
@@ -27,5 +28,30 @@
                 Cursor="Hand"
                 MouseLeftButtonDown="Swatch_Click"
                 ToolTip="Click to edit"/>
+
+        <!-- Eyedropper — pick any colour on screen. Hidden via ShowDropper="False". -->
+        <Border x:Name="DropperButton"
+                Grid.Column="2"
+                Width="26"
+                Margin="4,0,0,0"
+                Background="Transparent"
+                CornerRadius="3"
+                Cursor="Hand"
+                MouseLeftButtonDown="Dropper_Click"
+                ToolTip="Pick a colour from the screen">
+            <Path x:Name="DropperIcon"
+                  Width="14" Height="14" Stretch="Uniform"
+                  Fill="{StaticResource BrushTextMuted}"
+                  Data="M13.5,1.5 A1.8,1.8 0 0 1 16,4 L13.6,6.4 L14.2,7 L12.8,8.4 L12.2,7.8 L5.5,14.5 L2.5,15 L3,12 L9.7,5.3 L9.1,4.7 L10.5,3.3 L11.1,3.9 Z"/>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BrushSurface2}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
     </Grid>
 </UserControl>

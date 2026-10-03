@@ -103,6 +103,13 @@ public partial class ColorPickerBox : UserControl
         }
     }
 
+    private async void Dropper_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (await EyedropperWindow.PickAsync(Window.GetWindow(this)) is Color c)
+            HexValue = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+    }
+
     // Converts the current HexValue to a Windows COLORREF (0x00BBGGRR).
     private uint HexToColorRef()
     {

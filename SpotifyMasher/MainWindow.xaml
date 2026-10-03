@@ -250,16 +250,17 @@
                         <StackPanel x:Name="AuroraCustomPanel" Visibility="Collapsed" Margin="0,0,0,4">
                             <TextBlock Text="Gradient Colours" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <controls:ColorPickerBox x:Name="StyleAuroraC1" Width="104" Margin="0,0,6,0"/>
-                                <controls:ColorPickerBox x:Name="StyleAuroraC2" Width="104" Margin="0,0,6,0"/>
-                                <controls:ColorPickerBox x:Name="StyleAuroraC3" Width="104" Margin="0,0,6,0"/>
-                                <controls:ColorPickerBox x:Name="StyleAuroraC4" Width="104"/>
-                            </StackPanel>
+                            <!-- 2×2 so each picker has room for hex + swatch + eyedropper -->
+                            <UniformGrid Columns="2" HorizontalAlignment="Left" Margin="0,0,0,12">
+                                <controls:ColorPickerBox x:Name="StyleAuroraC1" Width="190" Margin="0,0,10,6"/>
+                                <controls:ColorPickerBox x:Name="StyleAuroraC2" Width="190" Margin="0,0,0,6"/>
+                                <controls:ColorPickerBox x:Name="StyleAuroraC3" Width="190" Margin="0,0,10,0"/>
+                                <controls:ColorPickerBox x:Name="StyleAuroraC4" Width="190"/>
+                            </UniformGrid>
 
                             <TextBlock Text="Background Colour" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
-                            <controls:ColorPickerBox x:Name="StyleAuroraBg" Width="120"
+                            <controls:ColorPickerBox x:Name="StyleAuroraBg" Width="190"
                                                      HorizontalAlignment="Left" Margin="0,0,0,4"/>
 
                             <TextBlock Text="The drifting background shards are derived automatically from your gradient colours."

@@ -233,7 +233,8 @@
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0">
                             To use your own colours, choose <Run FontWeight="SemiBold" Foreground="{StaticResource BrushText}">Aurora Custom</Run>,
                             then set the four gradient colours and the background colour — click a swatch to open the
-                            colour picker, or type a hex code.
+                            colour picker, type a hex code, or click the dropper to pick any colour on your screen
+                            (Esc cancels).
                         </TextBlock>
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0"
                                    Text="Toast Size scales the toast up to 300% — it previews live as you drag the slider. Click Preview Toast to see your choice before saving, or Reset to Defaults to start over." />
